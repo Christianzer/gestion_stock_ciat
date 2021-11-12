@@ -112,6 +112,9 @@ export default {
         Form
     },
     created() {
+        localStorage.removeItem('produits')
+        localStorage.removeItem('clients')
+        localStorage.removeItem('articles_prod')
         this.fetchdata()
         Fire.$on('creationok',()=>{
             this.fetchdata()

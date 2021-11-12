@@ -6,18 +6,18 @@
                 <b-breadcrumb-item href="#bar">Etablir facture</b-breadcrumb-item>
             </b-breadcrumb>
         </div>
-        <div class="card shadow mb-4">
-            <div class="card-header py-3 text-uppercase font-weight-bold">
-                Produit
+        <template v-if="isLoading === false">
+            <div class="text-center">
+                <b-spinner style="width: 3rem; height: 3rem;" label="Large Spinner"></b-spinner>
+                <b-spinner style="width: 3rem; height: 3rem;" label="Large Spinner" type="grow"></b-spinner>
             </div>
-            <div class="card-body">
-                <template v-if="isLoading === false">
-                    <div class="text-center">
-                        <b-spinner style="width: 3rem; height: 3rem;" label="Large Spinner"></b-spinner>
-                        <b-spinner style="width: 3rem; height: 3rem;" label="Large Spinner" type="grow"></b-spinner>
-                    </div>
-                </template>
-                <template v-else>
+        </template>
+        <template v-else>
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 text-uppercase font-weight-bold">
+                    Produit
+                </div>
+                <div class="card-body">
                     <table class="tftable table-responsive" border="1">
                         <tr>
                             <th>Code Produit</th>
@@ -38,70 +38,68 @@
                     <div class="text-right">
                         <h2 class="text-uppercase text-right text-danger font-weight-bolder" v-if="produit.length > 0"> TOTAL : {{ new Intl.NumberFormat().format(total) }} FCFA</h2>
                     </div>
-                </template>
-
-            </div>
-        </div>
-
-        <div class="card shadow mb-4">
-            <div class="card-header py-3 text-uppercase font-weight-bold">
-                Facture
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-8">
-                        <b-form-input :value="information" disabled></b-form-input>
-                    </div>
-                    <div class="col-md-4">
-                        <b-form-input disabled :value="telephone"></b-form-input>
-                    </div>
-                </div>
-                <br>
-                <div class="row">
-                    <div class="col-md-4">
-                        <b-form-group
-                            label-cols-sm="4"
-                            label-cols-lg="5"
-                            content-cols-sm
-                            content-cols-lg="7"
-                            label="Montant à payer"
-                            label-for="input-horizontal"
-                        >
-                            <b-form-input v-model="total" disabled></b-form-input>
-                        </b-form-group>
-                    </div>
-                    <div class="col-md-4">
-                        <b-form-group
-                            label-cols-sm="4"
-                            label-cols-lg="5"
-                            content-cols-sm
-                            content-cols-lg="7"
-                            label="Montant versé"
-                            label-for="input-horizontal"
-                        >
-                            <b-form-input type="number" v-model="montant_deposer" min="0"></b-form-input>
-                        </b-form-group>
-                    </div>
-                    <div class="col-md-4">
-                        <b-form-group
-                            label-cols-sm="4"
-                            label-cols-lg="5"
-                            content-cols-sm
-                            content-cols-lg="7"
-                            label="Montant à rendre"
-                            label-for="input-horizontal"
-                        >
-                            <b-form-input type="number" v-model="monnaie" disabled></b-form-input>
-                        </b-form-group>
-                    </div>
-                </div>
-                <div class="row justify-content-end">
-                    <b-button variant="danger mr-3" type="button" disabled v-if="montant_deposer < total">Payer {{new Intl.NumberFormat().format(montant_deposer)}} FCFA</b-button>
-                    <b-button variant="primary mr-3" type="button" v-else @click="Loading = true,achat()">Payer {{new Intl.NumberFormat().format(montant_deposer)}} FCFA</b-button>
                 </div>
             </div>
-        </div>
 
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 text-uppercase font-weight-bold">
+                    Facture
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <b-form-input :value="information" disabled></b-form-input>
+                        </div>
+                        <div class="col-md-4">
+                            <b-form-input disabled :value="telephone"></b-form-input>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <b-form-group
+                                label-cols-sm="4"
+                                label-cols-lg="5"
+                                content-cols-sm
+                                content-cols-lg="7"
+                                label="Montant à payer"
+                                label-for="input-horizontal"
+                            >
+                                <b-form-input v-model="total" disabled></b-form-input>
+                            </b-form-group>
+                        </div>
+                        <div class="col-md-4">
+                            <b-form-group
+                                label-cols-sm="4"
+                                label-cols-lg="5"
+                                content-cols-sm
+                                content-cols-lg="7"
+                                label="Montant versé"
+                                label-for="input-horizontal"
+                            >
+                                <b-form-input type="number" v-model="montant_deposer" min="0"></b-form-input>
+                            </b-form-group>
+                        </div>
+                        <div class="col-md-4">
+                            <b-form-group
+                                label-cols-sm="4"
+                                label-cols-lg="5"
+                                content-cols-sm
+                                content-cols-lg="7"
+                                label="Montant à rendre"
+                                label-for="input-horizontal"
+                            >
+                                <b-form-input type="number" v-model="monnaie" disabled></b-form-input>
+                            </b-form-group>
+                        </div>
+                    </div>
+                    <div class="row justify-content-end">
+                        <b-button variant="danger mr-3" type="button" disabled v-if="montant_deposer < total">Payer {{new Intl.NumberFormat().format(montant_deposer)}} FCFA</b-button>
+                        <b-button variant="primary mr-3" type="button" v-else @click="Loading = true,achat()">Payer {{new Intl.NumberFormat().format(montant_deposer)}} FCFA</b-button>
+                    </div>
+                </div>
+            </div>
+        </template>
         <b-overlay :show="Loading" no-wrap>
         </b-overlay>
 
@@ -147,6 +145,7 @@ export default {
             this.isLoading = true
         },
         async achat(){
+            this. Loading = false
             var data = {
                 produits : this.produit,
                 montant_total : this.total,
@@ -165,7 +164,7 @@ export default {
             }).catch((err) => {
                 console.log(err)
             })
-
+            this. Loading = true
         },
 
 
@@ -179,6 +178,9 @@ export default {
         },
     },
     created() {
+        localStorage.removeItem('produits')
+        localStorage.removeItem('clients')
+        localStorage.removeItem('articles_prod')
         this.code_commande = this.$route.params.code_commande
         this.chargerData(this.code_commande)
     }

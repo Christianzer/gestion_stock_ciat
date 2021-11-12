@@ -32,7 +32,7 @@
                         :filter="filter"
                     >
                         <template v-slot:cell(information)="row">
-                            {{row.item}}
+                            {{row.item.nom}} {{row.item.prenoms}} Téléphone : {{row.item.telephone}}
                         </template>
 
                         <template v-slot:cell(actions)="row">
@@ -62,7 +62,8 @@
             </div>
 
         </div>
-
+        <b-overlay :show="Loading" no-wrap>
+        </b-overlay>
     </div>
 </template>
 
@@ -72,6 +73,7 @@ export default {
     data(){
         return {
             filter :"",
+            Loading:false,
             currentPage: 1,
             isLoading : false,
             perPage: 10,
@@ -84,12 +86,12 @@ export default {
                     sortable:true,
                 },
                 {
-                    key:'montant_total',
-                    sortable:true,
-                },
-                {
                     key:'information',
                     label:'Clients',
+                },
+                {
+                    key:'montant_total',
+                    sortable:true,
                 },
                 {
                     key: 'actions'
@@ -98,11 +100,14 @@ export default {
         }
     },
     created() {
-
+        localStorage.removeItem('produits')
+        localStorage.removeItem('clients')
+        localStorage.removeItem('articles_prod')
+        this.listes()
     },
     methods: {
         async listes(){
-            this.Loading = false
+            this.isLoading = false
             let api_data = 'http://127.0.0.1:8000/api/listes_commandes'
             await this.axios.get(api_data).then(response=>{
                 let statut = response.status
@@ -112,13 +117,14 @@ export default {
             }).catch((err) => {
                 console.log(err)
             })
-            this.Loading = true
+            this.isLoading = true
         },
         async faire_facture(code_commande) {
             this.$router.push({ name: 'factures_vente', params: { code_commande: code_commande}})
         },
         async imprimer_commande(code_commande){
-            let api_data = 'http://127.0.0.1:8000/api/imprimer_demande/'+code_commande
+            this.Loading = false
+            let api_data = 'http://127.0.0.1:8000/api/imprimer_commandes/'+code_commande
             await this.axios.get(api_data, {
                 responseType: 'blob',
                 Accept: 'application/pdf',
@@ -133,8 +139,9 @@ export default {
             }).catch((error) => {
                 console.log(error);
             }).finally(() => {
-                this.loading = false;
+                this.Loading = true
             });
+            this.Loading = true
         }
     },
 

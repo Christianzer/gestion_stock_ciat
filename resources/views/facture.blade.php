@@ -5,7 +5,9 @@
 </head>
 <body>
 <header class="clearfix">
-    <div id="logo">
+
+    <!--
+      <div id="logo">
         <img src="http://syge.univ-fhb.edu.ci/donne/logo.bmp">
     </div>
     <div id="company">
@@ -15,6 +17,8 @@
         <div>Tél : (225).76.300.400 / 07.64.64.48</div>
 
     </div>
+     -->
+
 </header>
 <main>
     <div id="details" class="clearfix">

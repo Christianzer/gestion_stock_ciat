@@ -94,7 +94,6 @@ class ApiVentesControllers extends Controller
         //return view("facture",compact(['valeur','date_jour']));
         $pdf = PDF::loadView("commande",compact(['valeur','date_jour']))->setPaper('a4', 'portrait')
             ->setWarnings(false);
-        $pdf->setOption('javascript-delay', 3000);
         //return $pdf->stream();
         return $pdf->output();
 
@@ -129,6 +128,11 @@ class ApiVentesControllers extends Controller
     public function ventes(Request $request){
         $produits = $request->produits;
         $code_facture = $this->genererCodeFacture();
+
+        DB::table('bon_commande')->where('code_commande','=',$request->code_commande)->update(array(
+            'statut' =>2
+        ));
+
         foreach ($produits as $prod){
             $prix = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_produit']);
             DB::table('ventes')->insert(array(
@@ -138,15 +142,13 @@ class ApiVentesControllers extends Controller
                 'total_payer'=>$prix
             ));
         }
+
         DB::table('factures')->insert(array(
             'code_facture'=>$code_facture,
             'montant_total'=>(float)$request->montant_total,
             'montant_verser'=>(float)$request->somme_verse,
             'montant_rendu'=>(float)$request->somme_rendu,
             'matricule_clients'=>(int)$request->clients
-        ));
-        DB::table('bon_demande')->where('code_demande','=',$request->code_commande)->update(array(
-            'statut' =>2
         ));
 
         return response()->json($code_facture, 201);
@@ -176,8 +178,8 @@ class ApiVentesControllers extends Controller
         //return view("facture",compact(['valeur','date_jour']));
         $pdf = PDF::loadView("facture",compact(['valeur','date_jour']))->setPaper('a4', 'portrait')
             ->setWarnings(false);
-        return $pdf->stream();
-        //return $pdf->output();
+        //return $pdf->stream();
+        return $pdf->output();
 
     }
 

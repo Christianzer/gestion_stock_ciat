@@ -38,7 +38,7 @@
                                     <h4>{{selected.quantite_acheter}}</h4>
                                 </b-col>
                                 <b-col cols="3" class="text-center">
-                                    <b-button variant="outline-primary" @click="augmenter(selected.id_article)" :disabled="selected.quantite_disponible === 1">
+                                    <b-button variant="outline-primary" @click="augmenter(selected.id_article)" :disabled="selected.quantite_acheter >= selected.quantite_produit ">
                                         +
                                     </b-button>
                                 </b-col>
@@ -75,7 +75,7 @@
                 </div>
                 <b-row class="mt-4 text-left">
                     <b-col>
-                        <b-button variant="success" class="mr-1" @click="" v-if="total > 0">Valider le bon de commande</b-button>
+                        <b-button variant="success" class="mr-1" @click="inserercommande" v-if="total > 0">Valider le bon de commande</b-button>
                     </b-col>
                     <b-col></b-col>
                     <!--

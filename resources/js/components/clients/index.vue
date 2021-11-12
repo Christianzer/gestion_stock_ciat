@@ -109,6 +109,9 @@ export default {
         Form
     },
     created() {
+        localStorage.removeItem('produits')
+        localStorage.removeItem('clients')
+        localStorage.removeItem('articles_prod')
         this.fetchclients()
         this.isLoading = true
         //localStorage.removeItem('matricule')

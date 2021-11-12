@@ -87,6 +87,9 @@
                 </b-button>
             </div>
         </div>
+
+        <b-overlay :show="isLoading" no-wrap>
+        </b-overlay>
     </div>
 </template>
 
@@ -95,6 +98,7 @@ export default {
     name: "facture",
     data() {
         return {
+            isLoading : false,
             Loading : false,
             articlesPayer : [],
             informationPaiement:[],
@@ -105,7 +109,7 @@ export default {
 
     },
     methods : {
-        async chargerDonne(code_demande){
+        async chargerDonne(code_commande){
             this.Loading = false
             let api_data = 'http://127.0.0.1:8000/api/commandes/'+code_commande
             await this.axios.get(api_data).then(response=>{
@@ -123,7 +127,8 @@ export default {
             this.$router.push({ name: 'dashboard'})
         },
         async imprimer(code_commande){
-            let api_data = 'http://127.0.0.1:8000/api/imprimer_demande/'+code_commande
+            this.isLoading = false
+            let api_data = 'http://127.0.0.1:8000/api/imprimer_commandes/'+code_commande
             await this.axios.get(api_data, {
                 responseType: 'blob',
                 Accept: 'application/pdf',
@@ -136,15 +141,18 @@ export default {
                 document.body.appendChild(link);
                 link.click();
             }).catch((error) => {
-                    console.log(error);
-                }).finally(() => {
-                    this.loading = false;
-                });
-
+                console.log(error);
+            }).finally(() => {
+                this.isLoading = true
+            });
+            this.isLoading = true
         },
     },
 
     created() {
+        localStorage.removeItem('produits')
+        localStorage.removeItem('clients')
+        localStorage.removeItem('articles_prod')
         this.code_commande = this.$route.params.code_commande
         this.chargerDonne(this.code_commande)
     }

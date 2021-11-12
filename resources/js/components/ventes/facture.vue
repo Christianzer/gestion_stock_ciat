@@ -23,7 +23,7 @@
                                     <tr>
                                         <td class="title">
 
-                                             <img src="http://syge.univ-fhb.edu.ci/donne/logo.bmp" style="width:100%; max-width:150px;">
+                                            <img src="http://syge.univ-fhb.edu.ci/donne/logo.bmp" style="width:100%; max-width:150px;">
 
                                         </td>
                                         <td class="font-weight-bold text-primary">
@@ -95,6 +95,8 @@
                 </b-button>
             </div>
         </div>
+        <b-overlay :show="isLoading" no-wrap>
+        </b-overlay>
     </div>
 </template>
 
@@ -103,6 +105,7 @@ export default {
     name: "facture",
     data() {
         return {
+            isLoading :false,
             Loading : false,
             articlesPayer : [],
             informationPaiement:[],
@@ -132,15 +135,36 @@ export default {
         },
 
         async imprimer(code_facture){
+            this.isLoading = false
             let api_data = 'http://127.0.0.1:8000/api/imprimer_factures/'+code_facture
-            await this.axios.get(api_data)
+            await this.axios.get(api_data, {
+                responseType: 'blob',
+                Accept: 'application/pdf',
+            }) .then((response) => {
+                const url = window.URL.createObjectURL(new Blob([response.data], {type: 'application/pdf'}));
+                const link = document.createElement('a');
+                console.log(link);
+                link.href = url;
+                link.setAttribute('download', 'facture_'+code_facture+'.pdf'); //or any other extension
+                document.body.appendChild(link);
+                link.click();
+            }).catch((error) => {
+                console.log(error);
+            }).finally(() => {
+                this.isLoading = true
+            });
+            this.isLoading = true
 
         },
     },
 
     created() {
+        localStorage.removeItem('produits')
+        localStorage.removeItem('clients')
+        localStorage.removeItem('articles_prod')
         this.code_facture = this.$route.params.code_facture
         this.chargerDonne(this.code_facture)
+
     }
 }
 </script>

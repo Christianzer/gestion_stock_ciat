@@ -86,7 +86,11 @@ export default {
         }
     },
     created() {
+        localStorage.removeItem('produits')
+        localStorage.removeItem('clients')
+        localStorage.removeItem('articles_prod')
         this.fetchclients()
+
     },
     methods: {
         ...mapActions(["fetchclients"]),

@@ -5,7 +5,9 @@
 </head>
 <body>
 <header class="clearfix">
-    <div id="logo">
+
+    <!--
+     <div id="logo">
         <img src="http://syge.univ-fhb.edu.ci/donne/logo.bmp">
     </div>
     <div id="company">
@@ -15,6 +17,8 @@
         <div>Tél : (225).76.300.400 / 07.64.64.48</div>
 
     </div>
+     -->
+
 </header>
 <main>
     <div id="details" class="clearfix">
@@ -23,7 +27,7 @@
             <div class="name">CONTACT :{{$valeur['factures']->telephone}}</div>
         </div>
         <div id="invoice">
-            <div class="name">BON DE COMMANDE N° {{$valeur['factures']->code_facture}}</div>
+            <div class="name">BON DE COMMANDE N° {{$valeur['factures']->code_commande}}</div>
             <div class="name">DATE COMMANDE : {{$date_jour}}</div>
         </div>
     </div>
