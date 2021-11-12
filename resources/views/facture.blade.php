@@ -6,14 +6,13 @@
 <body>
 <header class="clearfix">
     <div id="logo">
-        <img src="http://syge.univ-fhb.edu.ci/donne/logo.jpg">
+        <img src="http://syge.univ-fhb.edu.ci/donne/logo.bmp">
     </div>
     <div id="company">
-        <div class="name"> COMPAGNIE INTERNATIONALE</div>
-        <div class="name"> D'AMENAGEMENT DE TERRAIN</div>
-        <div>06 BP 1044 Abidjan 06 Côte d'Ivoire</div>
-        <div>(225).27.22.40.09.20</div>
-        <div>contact@ciat.ci</div>
+        <div class="name">OBF - S.A - Capital 10.000.000 Fcfa</div>
+        <div>Abidjan-Cocody-Bonoumin, imm. CIAT-RC</div>
+        <div> 06 BP 1044 Abidjan 06 Côte d'Ivoire </div>
+        <div>Tél : (225).76.300.400 / 07.64.64.48</div>
 
     </div>
 </header>

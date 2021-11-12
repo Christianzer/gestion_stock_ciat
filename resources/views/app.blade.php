@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="{{asset('assets/img/logociat.jpg')}}">
+    <link rel="icon" href="{{asset('assets/img/logociat.bmp')}}">
     <title>Gestion de stock</title>
 
     <!-- Custom fonts for this template-->
@@ -36,7 +36,7 @@
                 <div class="sidebar-brand-icon rotate-n-15">
                     <i class="fas fa-laugh-wink"></i>
                 </div>
-                <div class="sidebar-brand-text mx-3">GESTION DE STOCK</div>
+                <div class="sidebar-brand-text mx-3">GESTION DE STOCK<sup> OBF</sup></div>
             </router-link>
 
             <!-- Divider -->
@@ -66,13 +66,26 @@
                 </router-link>
             </li>
 
+
+
             <!-- Nav Item - Dashboard -->
             <li class="nav-item active">
                 <router-link class="nav-link" :to="{name : 'ventes'}">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span class="text-uppercase">Ventes</span>
+                    <span class="text-uppercase">Commandes</span>
                 </router-link>
             </li>
+
+            <!-- Nav Item - Dashboard -->
+            <li class="nav-item active">
+                <router-link class="nav-link" :to="{name : 'listes_commandes'}">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span class="text-uppercase">Factures</span>
+                </router-link>
+            </li>
+
+
+
 
 
 
@@ -115,9 +128,11 @@
             <!-- Footer -->
             <footer class="sticky-footer bg-white">
                 <div class="container my-auto">
-                    <div class="copyright text-center my-auto">
+                    <div class="copyright my-auto">
                         <span>
-                            Tous Droits Réservés - Copyright © 2016; - CIAT 06 BP 1044 Abidjan 06 Côte d'Ivoire | Tél : (225).27.22.40.09.20 / Fax : (225).27.22.44.16.63 | E-mail : contact@ciat.ci
+                            OBF - S.A - Capital 10.000.000 Fcfa - Abidjan-Cocody-Bonoumin, imm. CIAT - RC : CI-ABJ-03-2021-B14-00027
+                            , CC : 2109932-Y
+                            Regime :  Réel Simplifié, 06 BP 1044 Abidjan 06 Côte d'Ivoire - Tél : (225)27.76.300.400 / 07.07.64.64.48
                         </span>
                     </div>
                 </div>

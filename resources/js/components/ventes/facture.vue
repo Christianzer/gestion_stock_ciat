@@ -22,9 +22,8 @@
                                 <table>
                                     <tr>
                                         <td class="title">
-                                            <!--
-                                             <img src="" style="width:100%; max-width:150px;">
-                                             -->
+
+                                             <img src="http://syge.univ-fhb.edu.ci/donne/logo.bmp" style="width:100%; max-width:150px;">
 
                                         </td>
                                         <td class="font-weight-bold text-primary">
@@ -40,7 +39,7 @@
                                 <table>
                                     <tr>
                                         <td class="font-weight-bold text-primary text-uppercase">
-                                            CIAT GESTION STOCK<br> 06 BP 1044 Abidjan 06 Côte d'Ivoire<br> Tél : (225).27.22.40.09.20 / Fax : (225).27.22.44.16.63
+                                            OBF - S.A - Capital 10.000.000 Fcfa<br> 06 BP 1044 Abidjan 06 Côte d'Ivoire<br>  Tél : (225)27.76.300.400 / 07.07.64.64.48
                                         </td>
                                     </tr>
                                 </table>

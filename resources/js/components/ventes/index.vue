@@ -30,9 +30,9 @@
                             <b-button
                                 size="sm"
                                 variant="outline-primary"
-                                @click="modifier(row.item)"
+                                @click="bon_commande(row.item)"
                             >
-                                Faire une vente
+                                Faire une commande
                             </b-button>
                         </template>
                     </b-table>
@@ -90,10 +90,10 @@ export default {
     },
     methods: {
         ...mapActions(["fetchclients"]),
-        async modifier(dataPat) {
+        async bon_commande(dataPat) {
             localStorage.setItem('clients',JSON.stringify(dataPat))
             this.$router.push({name:'ventes_users'})
-        },
+        }
     },
     computed : mapGetters(["all_clients"]),
 }

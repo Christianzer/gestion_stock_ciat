@@ -37,4 +37,11 @@ Route::post('ventes', [ApiVentesControllers::class,'ventes']);
 Route::get('factures/{code_facture}', [ApiVentesControllers::class,'read_facture']);
 Route::get('imprimer_factures/{code_facture}', [ApiVentesControllers::class,'imprimer_facture']);
 
+Route::post('commandes', [ApiVentesControllers::class,'commandes']);
+Route::get('commandes/{code_commande}', [ApiVentesControllers::class,'read_commande']);
+Route::get('imprimer_commandes/{code_commande}', [ApiVentesControllers::class,'imprimer_commande']);
+
+Route::get('listes_commandes', [ApiVentesControllers::class,'listes_commandes']);
+Route::get('remplir_facture/{code_commande}', [ApiVentesControllers::class,'remplir_facture']);
+
 Route::get('dash',[ApiClientsControllers::class,'getData']);

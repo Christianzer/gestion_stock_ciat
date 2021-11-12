@@ -3,12 +3,12 @@
         <div class="d-sm-flex align-items-center justify-content-between mb-4">
             <b-breadcrumb>
                 <b-breadcrumb-item>Gestion de stock</b-breadcrumb-item>
-                <b-breadcrumb-item href="#bar">Panier</b-breadcrumb-item>
+                <b-breadcrumb-item href="#bar">Bon de commande</b-breadcrumb-item>
             </b-breadcrumb>
         </div>
         <div class="card shadow mb-4">
             <div class="card-header py-3 text-uppercase font-weight-bold">
-                Panier Produit
+                Produit
             </div>
             <div class="card-body">
                 <table class="tftable table-responsive" border="1">
@@ -75,7 +75,7 @@
                 </div>
                 <b-row class="mt-4 text-left">
                     <b-col>
-                        <b-button variant="success" class="mr-1" @click="afficherPaiement = true" v-if="total > 0">Passer à la caisse maintenant</b-button>
+                        <b-button variant="success" class="mr-1" @click="" v-if="total > 0">Valider le bon de commande</b-button>
                     </b-col>
                     <b-col></b-col>
                     <!--
@@ -88,9 +88,11 @@
                 </b-row>
             </div>
         </div>
-        <div class="card shadow mb-4" v-if="afficherPaiement === true">
+        <!-- Facture -->
+        <!--
+          <div class="card shadow mb-4" v-if="afficherPaiement === true">
             <div class="card-header py-3 text-uppercase font-weight-bold">
-                Caisse
+               Bon de commande
             </div>
             <div class="card-body">
                 <div class="row">
@@ -146,6 +148,7 @@
                 </div>
             </div>
         </div>
+         -->
         <b-overlay :show="Loading" no-wrap>
         </b-overlay>
 
@@ -182,7 +185,6 @@ export default {
                 }
             }
         },
-
         async achat(){
             var data = {
                 produits : this.produit,
@@ -206,7 +208,6 @@ export default {
             })
 
         },
-
         augmenter(id){
             for (let index = 0;index < this.produit.length;index++) {
                 if (this.produit[index].id_article === id) {
@@ -233,6 +234,30 @@ export default {
             }
             localStorage.setItem('produits',JSON.stringify(this.produit))
         },
+        async inserercommande(){
+            var data = {
+                produits : this.produit,
+                montant_total : this.total,
+                clients:this.data_clients.id
+            }
+            let api = 'http://127.0.0.1:8000/api/commandes'
+            await this.axios.post(api,data).then(response=>{
+                let statut = response.status
+                if (statut === 201){
+                    localStorage.removeItem('produits')
+                    localStorage.removeItem('clients')
+                    localStorage.removeItem('articles_prod')
+                    //let code_facture = response.data
+                    //this.$router.push({ name: 'facture', params: { code_facture: code_facture}})
+                    let code_commandes = response.data
+                    this.$router.push({ name: 'commande', params: { code_commande: code_commandes}})
+                }
+            }).catch((err) => {
+                console.log(err)
+            })
+
+        },
+
     },
     computed : {
         total(){

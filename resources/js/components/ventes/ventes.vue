@@ -3,10 +3,10 @@
         <div class="d-sm-flex align-items-center justify-content-between mb-4">
             <b-breadcrumb>
                 <b-breadcrumb-item>Gestion de stock</b-breadcrumb-item>
-                <b-breadcrumb-item>Ventes</b-breadcrumb-item>
+                <b-breadcrumb-item>Commandes</b-breadcrumb-item>
             </b-breadcrumb>
             <b-button variant="danger" :to="{name : 'panier'}">
-                ALLER AU PANIER
+                VOIR LA COMMANDE
             </b-button>
         </div>
         <div class="card shadow mb-4">
@@ -37,7 +37,7 @@
                             :disabled="row.item.consulter"
                             @click="row.item.consulter = true, ajouterPanier(JSON.parse(JSON.stringify(row.item)))"
                         >
-                            Ajouter au panier
+                            Ajouter au bon de commande
                         </b-button>
                         <b-button
                             size="sm"
@@ -46,7 +46,7 @@
                             v-if="row.item.consulter"
                             :disabled="row.item.consulter"
                         >
-                            Deja Ajouté au panier
+                            Deja Ajouté au bon de commande
                         </b-button>
                         <b-button
                             size="sm"
