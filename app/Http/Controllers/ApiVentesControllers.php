@@ -105,8 +105,7 @@ class ApiVentesControllers extends Controller
     public function listes_commandes(){
         $commandes = DB::table('bon_commande')
             ->join('clients','clients.id','bon_commande.matricule_clients')
-            ->where('bon_commande.statut','=',1)
-            ->select('*')->get();
+            ->get();
         return response($commandes,201);
     }
 
@@ -129,10 +128,6 @@ class ApiVentesControllers extends Controller
         $produits = $request->produits;
         $code_facture = $this->genererCodeFacture();
 
-        DB::table('bon_commande')->where('code_commande','=',$request->code_commande)->update(array(
-            'statut' =>2
-        ));
-
         foreach ($produits as $prod){
             $prix = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_produit']);
             DB::table('ventes')->insert(array(
@@ -149,6 +144,10 @@ class ApiVentesControllers extends Controller
             'montant_verser'=>(float)$request->somme_verse,
             'montant_rendu'=>(float)$request->somme_rendu,
             'matricule_clients'=>(int)$request->clients
+        ));
+
+ DB::table('bon_commande')->where('code_commande','=',$request->code_commande)->update(array(
+            'statut_prod' =>2,'code_facture'=>$code_facture
         ));
 
         return response()->json($code_facture, 201);
