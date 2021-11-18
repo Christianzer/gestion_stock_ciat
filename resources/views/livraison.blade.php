@@ -16,8 +16,8 @@
             <div class="name">CONTACT :{{$valeur['factures']->telephone}}</div>
         </div>
         <div id="invoice">
-            <div class="name">BON DE COMMANDE N° {{$valeur['factures']->code_commande}}</div>
-            <div class="name">DATE COMMANDE : {{$date_jour}}</div>
+            <div class="name">BON DE LIVRAISON N° {{$valeur['factures']->code_commande}}</div>
+            <div class="name">DATE LIVRAISON : {{$date_jour}}</div>
         </div>
     </div>
     <table border="0" cellspacing="0" cellpadding="0">

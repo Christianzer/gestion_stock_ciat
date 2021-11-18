@@ -99,6 +99,24 @@ class ApiVentesControllers extends Controller
 
     }
 
+    public function imprimer_livraison($code_commande){
+        set_time_limit(300);
+        $facture_data = DB::table('bon_commande')
+            ->join('clients','clients.id','bon_commande.matricule_clients')
+            ->where('bon_commande.code_commande','=',$code_commande)->first();
+        $element_facture = DB::table('commandes')
+            ->join('produits','produits.code_produit','commandes.code_produit')
+            ->where('commandes.code_commande','=',$code_commande)->get();
+        $valeur = array('factures'=>$facture_data, 'element'=>$element_facture);
+        $date_jour = $this->dateToFrench(date('Y-m-d'),'l j F Y');
+        //return view("facture",compact(['valeur','date_jour']));
+        $pdf = PDF::loadView("livraison",compact(['valeur','date_jour']))->setPaper('a4', 'portrait')
+            ->setWarnings(false);
+        //return $pdf->stream();
+        return $pdf->output();
+
+    }
+
 
     /**Commandes */
 
@@ -146,7 +164,7 @@ class ApiVentesControllers extends Controller
             'matricule_clients'=>(int)$request->clients
         ));
 
- DB::table('bon_commande')->where('code_commande','=',$request->code_commande)->update(array(
+        DB::table('bon_commande')->where('code_commande','=',$request->code_commande)->update(array(
             'statut_prod' =>2,'code_facture'=>$code_facture
         ));
 
@@ -181,5 +199,49 @@ class ApiVentesControllers extends Controller
         return $pdf->output();
 
     }
+
+    //bon_livraison
+
+    public function read_bon_livraison($code_commande){
+        $produits = DB::table('produits')
+            ->selectRaw('produits.id as id_bon_livraison,produits.code_produit,produits.libelle_produit
+       ,(produits.quantite_produit - sum(ventes.quantite_acheter)) as quantite_disponible,
+commandes.quantite_acheter,produits.prix_produit')
+            ->join('commandes','commandes.code_produit','produits.code_produit')
+            ->leftJoin('ventes','ventes.code_produit','=','produits.code_produit')
+            ->where('commandes.code_commande','=',$code_commande)
+            ->groupBy('ventes.code_produit')->get();
+        return response()->json($produits, 201);
+    }
+
+
+    public function update_livraison(Request $request,$code_commande){
+
+        $produits = $request->produits;
+
+        foreach ($produits as $prod){
+            $prix = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_produit']);
+            DB::table('commandes')
+                ->where('code_produit','=',$prod['code_produit'])
+                ->where('code_commande','=',$code_commande)
+                ->update(array(
+                    'quantite_acheter'=>$prod['quantite_acheter'],
+                    'total_payer'=>$prix
+                ))
+            ;
+        }
+
+        $update = DB::table('bon_commande')
+            ->where('code_commande','=',$code_commande)
+            ->update(array(
+            'montant_total' =>(float)$request->montant_total
+        ));
+
+        return response()->json($update, 201);
+
+
+    }
+
+
 
 }

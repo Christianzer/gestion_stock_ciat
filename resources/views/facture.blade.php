@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" type="text/css" href="http://syge.univ-fhb.edu.ci/donne/style_print.css" media="all" />
+    <link rel="stylesheet" type="text/css" href="http://syge.univ-fhb.edu.ci/donne/style_facture.css" media="all" />
 </head>
 <body>
 <div class="center_page">

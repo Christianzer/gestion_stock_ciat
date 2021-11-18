@@ -44,4 +44,8 @@ Route::get('imprimer_commandes/{code_commande}', [ApiVentesControllers::class,'i
 Route::get('listes_commandes', [ApiVentesControllers::class,'listes_commandes']);
 Route::get('remplir_facture/{code_commande}', [ApiVentesControllers::class,'remplir_facture']);
 
+Route::get('remplir_bon_livraison/{code_commande}', [ApiVentesControllers::class,'read_bon_livraison']);
+Route::put('livraison/{code_commande}', [ApiVentesControllers::class,'update_livraison']);
+Route::get('imprimer_livraison/{code_commande}', [ApiVentesControllers::class,'imprimer_livraison']);
+
 Route::get('dash',[ApiClientsControllers::class,'getData']);
