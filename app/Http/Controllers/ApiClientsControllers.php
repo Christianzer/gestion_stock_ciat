@@ -110,8 +110,10 @@ class ApiClientsControllers extends Controller
             ->groupByRaw('produits.code_produit,produits.libelle_produit,produits.quantite_produit,produits.prix_produit')->get();
 
         $ventes_realiser = DB::table('versement')->select(DB::raw('sum(montant_verser) as montant_total'))->first();
+        $ventes_realiser_ttc = DB::table('versement')->select(DB::raw('sum(montant_verser_ttc) as montant_total'))->first();
 
         $ventes_a_realiser = DB::table('produits')->select(DB::raw('sum(prix_produit * quantite_produit) as montant'))->first();
+        $ventes_a_realiser_ttc = DB::table('produits')->select(DB::raw('sum(prix_produit_ttc * quantite_produit) as montant'))->first();
 
         $top_five_clients = DB::table('ventes')
             ->selectRaw('clients.nom,clients.prenoms,clients.telephone,sum(ventes.quantite_acheter) as prod_acheter')
@@ -127,7 +129,7 @@ class ApiClientsControllers extends Controller
             ->join('ventes','ventes.code_produit','=','produits.code_produit')
             ->groupByRaw('produits.code_produit,produits.libelle_produit')
             ->orderByDesc('prod_acheter')
-            ->limit(5)
+            ->limit(3)
             ->get();
 
         return response()->json(array(
@@ -135,6 +137,8 @@ class ApiClientsControllers extends Controller
             'produits'=>$produits,
             'ventes_realiser'=>$ventes_realiser,
             'ventes_a_realiser' =>$ventes_a_realiser,
+            'ventes_realiser_ttc'=>$ventes_realiser_ttc,
+            'ventes_a_realiser_ttc' =>$ventes_a_realiser_ttc,
             'chiffres_affaire' =>$chiffres_affaire,
             'top_five_clients'=>$top_five_clients,
             'top_fives_produits'=>$top_fives_produits

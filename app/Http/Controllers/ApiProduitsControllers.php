@@ -27,6 +27,7 @@ class ApiProduitsControllers extends Controller
                 "libelle_produit" => $produit->libelle_produit,
                 "quantite_produit" => $quantite_disponible,
                 "prix_produit" => $produit->prix_produit,
+                "prix_produit_ttc" => $produit->prix_produit_ttc,
                 "quantite_acheter"=>1,
                 "consulter"=>false
             );
@@ -44,12 +45,14 @@ class ApiProduitsControllers extends Controller
         $libelle_produit = $request->input('libelle_produit');
         $quantite_produit = $request->input('quantite_produit');
         $prix_produit = $request->input('prix_produit');
+        $prix_produit_ttc = $request->input('prix_produit_ttc');
 
         $data = array(
             'code_produit'=>$code_produit,
             'libelle_produit'=>$libelle_produit,
             'quantite_produit'=>$quantite_produit,
             'prix_produit'=>$prix_produit,
+            'prix_produit_ttc'=>$prix_produit_ttc
         );
 
         $clients = DB::table('produits')->insert($data);
@@ -71,12 +74,14 @@ class ApiProduitsControllers extends Controller
         $libelle_produit = $request->input('libelle_produit');
         $quantite_produit = $request->input('quantite_produit');
         $prix_produit = $request->input('prix_produit');
+        $prix_produit_ttc = $request->input('prix_produit_ttc');
 
         $data = array(
             'code_produit'=>$code_produit,
             'libelle_produit'=>$libelle_produit,
             'quantite_produit'=>$quantite_produit,
             'prix_produit'=>$prix_produit,
+            'prix_produit_ttc'=>$prix_produit_ttc
         );
 
         $clients = DB::table('produits')->where('id','=',$id)
