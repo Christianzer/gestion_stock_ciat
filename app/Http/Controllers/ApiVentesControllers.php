@@ -126,9 +126,12 @@ class ApiVentesControllers extends Controller
     }
 
     public function remplir_facture($code_commande){
+
         $facture_data = DB::table('bon_commande')
+            ->leftJoin('factures','factures.code_facture','=','bon_commande.code_facture')
             ->join('clients','clients.id','bon_commande.matricule_clients')
-            ->where('bon_commande.code_commande','=',$code_commande)->first();
+            ->where('bon_commande.code_commande','=',$code_commande)
+            ->first();
 
         $element_facture = DB::table('commandes')
             ->join('produits','produits.code_produit','commandes.code_produit')

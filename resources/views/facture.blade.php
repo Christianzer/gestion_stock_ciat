@@ -147,11 +147,11 @@
         </tr>
         <tr class="total">
             <td colspan="4"></td>
-            <td style="font-size: 16px" class="text-primary font-weight-bold text-uppercase">Versement : {{number_format($valeur['factures']->montant_verser,'0','.',' ')}} FCFA</td>
+            <td style="font-size: 16px" class="text-primary font-weight-bold text-uppercase">Verser : {{number_format($valeur['factures']->montant_verser,'0','.',' ')}} FCFA</td>
         </tr>
         <tr class="total">
             <td colspan="4"></td>
-            <td style="font-size: 16px" class="text-danger font-weight-bold text-uppercase">Rendu : {{number_format($valeur['factures']->montant_rendu,'0','.',' ')}} FCFA</td>
+            <td style="font-size: 16px" class="text-danger font-weight-bold text-uppercase">Reste à verser : {{number_format($valeur['factures']->montant_rendu,'0','.',' ')}} FCFA</td>
         </tr>
     </table>
 </div>
