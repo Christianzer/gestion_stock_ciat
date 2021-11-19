@@ -109,14 +109,14 @@ class ApiClientsControllers extends Controller
             ->leftJoin('ventes','produits.code_produit','=','ventes.code_produit')
             ->groupByRaw('produits.code_produit,produits.libelle_produit,produits.quantite_produit,produits.prix_produit')->get();
 
-        $ventes_realiser = DB::table('factures')->select(DB::raw('sum(montant_total) as montant_total'))->first();
+        $ventes_realiser = DB::table('versement')->select(DB::raw('sum(montant_verser) as montant_total'))->first();
 
         $ventes_a_realiser = DB::table('produits')->select(DB::raw('sum(prix_produit * quantite_produit) as montant'))->first();
 
         $top_five_clients = DB::table('ventes')
             ->selectRaw('clients.nom,clients.prenoms,clients.telephone,sum(ventes.quantite_acheter) as prod_acheter')
             ->join('factures','ventes.code_facture','=','factures.code_facture')
-            ->join('clients','clients.id','=','factures.matricule_clients')
+            ->join('clients','clients.id','=','factures.matricule_clients_factures')
             ->groupByRaw('clients.id,clients.nom,clients.prenoms,clients.telephone')
             ->orderByDesc('prod_acheter')
             ->limit(5)

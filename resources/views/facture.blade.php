@@ -134,24 +134,30 @@
         </tr>
         @foreach($valeur['element'] as $produit)
             <tr class="item">
-                <td style="font-size: 16px" class="text-primary font-weight-bold">{{$produit->code_produit}}</td>
-                <td style="font-size: 16px" class="text-primary font-weight-bold">{{$produit->libelle_produit}}</td>
-                <td style="font-size: 16px" class="text-primary font-weight-bold">{{number_format($produit->prix_produit,'0','.',' ')}} FCFA</td>
-                <td style="font-size: 16px" class="text-primary font-weight-bold">{{$produit->quantite_acheter}}</td>
-                <td style="font-size: 16px" class="text-primary font-weight-bold">{{number_format($produit->total_payer,'0','.',' ')}} FCFA</td>
+                <td style="font-size: 14px" class="text-primary font-weight-bold">{{$produit->code_produit}}</td>
+                <td style="font-size: 14px" class="text-primary font-weight-bold">{{$produit->libelle_produit}}</td>
+                <td style="font-size: 14px" class="text-primary font-weight-bold">{{number_format($produit->prix_produit,'0','.',' ')}} FCFA</td>
+                <td style="font-size: 14px" class="text-primary font-weight-bold">{{$produit->quantite_acheter}}</td>
+                <td style="font-size: 14px" class="text-primary font-weight-bold">{{number_format($produit->total_payer,'0','.',' ')}} FCFA</td>
             </tr>
         @endforeach
         <tr class="total">
             <td colspan="4"></td>
-            <td style="font-size: 16px" class="text-success font-weight-bold text-uppercase">Total : {{number_format($valeur['factures']->montant_total,'0','.',' ')}} FCFA</td>
+            <td style="font-size: 14px" class="text-success font-weight-bold text-uppercase">Total : {{number_format($valeur['factures']->montant_total_factures,'0','.',' ')}} FCFA</td>
+        </tr>
+@foreach($valeur['versements_data'] as $index=>$ver)
+           <tr class="total">
+            <td colspan="4"></td>
+            <td style="font-size: 14px" class="text-primary font-weight-bold text-uppercase">Versement {{$index+1}} : {{number_format($ver->montant_verser,'0','.',' ')}} FCFA</td>
+        </tr>
+        @endforeach
+        <tr class="total">
+            <td colspan="4"></td>
+            <td style="font-size: 14px" class="text-primary font-weight-bold text-uppercase">Total Versement : {{number_format($valeur['versement'],'0','.',' ')}} FCFA</td>
         </tr>
         <tr class="total">
             <td colspan="4"></td>
-            <td style="font-size: 16px" class="text-primary font-weight-bold text-uppercase">Verser : {{number_format($valeur['factures']->montant_verser,'0','.',' ')}} FCFA</td>
-        </tr>
-        <tr class="total">
-            <td colspan="4"></td>
-            <td style="font-size: 16px" class="text-danger font-weight-bold text-uppercase">Reste à verser : {{number_format($valeur['factures']->montant_rendu,'0','.',' ')}} FCFA</td>
+            <td style="font-size: 14px" class="text-danger font-weight-bold text-uppercase">Reste à payer: {{number_format($valeur['factures']->montant_total_factures-$valeur['versement'],'0','.',' ')}} FCFA</td>
         </tr>
     </table>
 </div>
