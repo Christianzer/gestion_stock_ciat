@@ -91,11 +91,10 @@ class ApiVentesControllers extends Controller
             ->where('commandes.code_commande','=',$code_commande)->get();
         $valeur = array('factures'=>$facture_data, 'element'=>$element_facture);
         $date_jour = $this->dateToFrench(date('Y-m-d'),'l j F Y');
-        //return view("facture",compact(['valeur','date_jour']));
-        $pdf = PDF::loadView("commande",compact(['valeur','date_jour']))->setPaper('a4', 'portrait')
-            ->setWarnings(false);
+        return view("commande",compact(['valeur','date_jour']));
+        //$pdf = PDF::loadView("commande",compact(['valeur','date_jour']))->setPaper('a4', 'portrait')->setWarnings(false);
         //return $pdf->stream();
-        return $pdf->output();
+        //return $pdf->output();
 
     }
 
@@ -109,11 +108,10 @@ class ApiVentesControllers extends Controller
             ->where('commandes.code_commande','=',$code_commande)->get();
         $valeur = array('factures'=>$facture_data, 'element'=>$element_facture);
         $date_jour = $this->dateToFrench(date('Y-m-d'),'l j F Y');
-        //return view("facture",compact(['valeur','date_jour']));
-        $pdf = PDF::loadView("livraison",compact(['valeur','date_jour']))->setPaper('a4', 'portrait')
-            ->setWarnings(false);
+        return view("livraison",compact(['valeur','date_jour']));
+        //$pdf = PDF::loadView("livraison",compact(['valeur','date_jour']))->setPaper('a4', 'portrait')->setWarnings(false);
         //return $pdf->stream();
-        return $pdf->output();
+        //return $pdf->output();
 
     }
 
@@ -192,11 +190,10 @@ class ApiVentesControllers extends Controller
             ->where('ventes.code_facture','=',$code_facture)->get();
         $valeur = array('factures'=>$facture_data, 'element'=>$element_facture);
         $date_jour = $this->dateToFrench(date('Y-m-d'),'l j F Y');
-        //return view("facture",compact(['valeur','date_jour']));
-        $pdf = PDF::loadView("facture",compact(['valeur','date_jour']))->setPaper('a4', 'portrait')
-            ->setWarnings(false);
+        return view("facture",compact(['valeur','date_jour']));
+        //$pdf = PDF::loadView("facture",compact(['valeur','date_jour']))->setPaper('a4', 'portrait')->setWarnings(false);
         //return $pdf->stream();
-        return $pdf->output();
+        //return $pdf->output();
 
     }
 
@@ -204,14 +201,31 @@ class ApiVentesControllers extends Controller
 
     public function read_bon_livraison($code_commande){
         $produits = DB::table('produits')
-            ->selectRaw('produits.id as id_bon_livraison,produits.code_produit,produits.libelle_produit
-       ,(produits.quantite_produit - sum(ventes.quantite_acheter)) as quantite_disponible,
-commandes.quantite_acheter,produits.prix_produit')
+            ->selectRaw('
+            produits.id as id_bon_livraison,produits.code_produit,produits.libelle_produit
+       ,produits.quantite_produit , sum(ventes.quantite_acheter) as quantite_vendu,
+commandes.quantite_acheter,produits.prix_produit,commandes.quantite_acheter as comm_quantite
+            ')
             ->join('commandes','commandes.code_produit','produits.code_produit')
             ->leftJoin('ventes','ventes.code_produit','=','produits.code_produit')
             ->where('commandes.code_commande','=',$code_commande)
-            ->groupBy('ventes.code_produit')->get();
-        return response()->json($produits, 201);
+            ->groupByRaw('commandes.quantite_acheter, produits.code_produit, produits.libelle_produit, produits.id, produits.prix_produit')
+            ->get();
+
+        foreach($produits as $produit){
+            $quantite_disponible = (int)$produit->quantite_produit - (int)$produit->quantite_vendu;
+            $e = array(
+                "id_article" => $produit->id_bon_livraison,
+                "code_produit" => $produit->code_produit,
+                "libelle_produit" => $produit->libelle_produit,
+                "quantite_produit" => $quantite_disponible,
+                "prix_produit" => $produit->prix_produit,
+                "quantite_acheter"=>$produit->comm_quantite,
+            );
+
+            $valeur["element"][] = $e;
+        }
+        return response()->json($valeur, 201);
     }
 
 

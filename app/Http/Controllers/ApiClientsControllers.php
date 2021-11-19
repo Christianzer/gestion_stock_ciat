@@ -21,12 +21,18 @@ class ApiClientsControllers extends Controller
         $nom = $request->input('nom');
         $prenoms = $request->input('prenoms');
         $telephone = $request->input('telephone');
+        $contact = $request->input('contact');
+        $compte_contr = $request->input('compte_contr');
+        $mail = $request->input('mail');
 
         $data = array(
             'matricule'=>$matricule,
             'nom'=>$nom,
             'prenoms'=>$prenoms,
             'telephone'=>$telephone,
+            'contact'=>$contact,
+            'compte_contr'=>$compte_contr,
+            'mail'=>$mail
         );
 
         $clients = DB::table('clients')->insert($data);
@@ -48,12 +54,18 @@ class ApiClientsControllers extends Controller
         $nom = $request->input('nom');
         $prenoms = $request->input('prenoms');
         $telephone = $request->input('telephone');
+        $contact = $request->input('contact');
+        $compte_contr = $request->input('compte_contr');
+        $mail = $request->input('mail');
 
         $data = array(
             'matricule'=>$matricule,
             'nom'=>$nom,
             'prenoms'=>$prenoms,
             'telephone'=>$telephone,
+            'contact'=>$contact,
+            'compte_contr'=>$compte_contr,
+            'mail'=>$mail
         );
 
         $clients = DB::table('clients')->where('id','=',$id)
