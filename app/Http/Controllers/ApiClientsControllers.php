@@ -109,8 +109,8 @@ class ApiClientsControllers extends Controller
             ->leftJoin('ventes','produits.code_produit','=','ventes.code_produit')
             ->groupByRaw('produits.code_produit,produits.libelle_produit,produits.quantite_produit,produits.prix_produit')->get();
 
-        $ventes_realiser = DB::table('versement')->select(DB::raw('sum(montant_verser) as montant_total'))->first();
-        $ventes_realiser_ttc = DB::table('versement')->select(DB::raw('sum(montant_verser_ttc) as montant_total'))->first();
+        $ventes_realiser = DB::table('factures')->select(DB::raw('sum(montant_total_factures) as montant_total'))->first();
+        $ventes_realiser_ttc = DB::table('factures')->select(DB::raw('sum(montant_total_factures_ttc) as montant_total'))->first();
 
         $ventes_a_realiser = DB::table('produits')->select(DB::raw('sum(prix_produit * quantite_produit) as montant'))->first();
         $ventes_a_realiser_ttc = DB::table('produits')->select(DB::raw('sum(prix_produit_ttc * quantite_produit) as montant'))->first();

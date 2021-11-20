@@ -107,7 +107,7 @@
 <div class="invoice-box">
     <table>
         <tr class="top">
-            <td colspan="5">
+            <td colspan="6">
                 <table>
                     <tr>
                         <td class="title">
@@ -127,7 +127,7 @@
         </tr>
 
         <tr class="information">
-            <td colspan="5">
+            <td colspan="6">
                 <table>
                     <tr>
                         <td class="font-weight-bold text-primary text-uppercase">
@@ -139,11 +139,11 @@
         </tr>
         <tr style="height: 50px"></tr>
         <tr class="heading">
-            <td colspan="5" class="text-uppercase text-danger font-weight-bold">Information Client</td>
+            <td colspan="6" class="text-uppercase text-danger font-weight-bold">Information Client</td>
         </tr>
 
         <tr class="details font-weight-bold">
-            <td class="text-uppercase">{{$valeur['factures']->nom}} {{$valeur['factures']->prenoms}}</td>
+            <td class="text-uppercase" colspan="2">{{$valeur['factures']->nom}} {{$valeur['factures']->prenoms}}</td>
             <td>CC: {{$valeur['factures']->compte_contr}}</td>
             <td>Mail: {{$valeur['factures']->mail}}</td>
             <td>Contact 1: {{$valeur['factures']->telephone}}</td>
@@ -151,24 +151,32 @@
         </tr>
 
         <tr class="heading">
-            <td>CODE PRODUIT</td>
+
             <td>LIBELLE PRODUIT</td>
-            <td>PRIX UNITAIRE</td>
+            <td>PRIX HT</td>
+            <td>PRIX TTC</td>
             <td class="text-uppercase">Quantité</td>
-            <td>PRIX TOTAL</td>
+            <td>TOTAL HT</td>
+            <td>TOTAL TTC</td>
         </tr>
         @foreach($valeur['element'] as $produit)
             <tr class="item">
-                <td style="font-size: 14px" class="text-primary font-weight-bold">{{$produit->code_produit}}</td>
+
                 <td style="font-size: 14px" class="text-primary font-weight-bold">{{$produit->libelle_produit}}</td>
                 <td style="font-size: 14px" class="text-primary font-weight-bold">{{number_format($produit->prix_produit,'0','.',' ')}} FCFA</td>
+                <td style="font-size: 14px" class="text-primary font-weight-bold">{{number_format($produit->prix_produit_ttc,'0','.',' ')}} FCFA</td>
                 <td style="font-size: 14px" class="text-primary font-weight-bold">{{$produit->quantite_acheter}}</td>
                 <td style="font-size: 14px" class="text-primary font-weight-bold">{{number_format($produit->total_payer,'0','.',' ')}} FCFA</td>
+                <td style="font-size: 14px" class="text-primary font-weight-bold">{{number_format($produit->total_payer_ttc,'0','.',' ')}} FCFA</td>
             </tr>
         @endforeach
         <tr class="total">
-            <td colspan="4"></td>
-            <td style="font-size: 14px" class="text-success font-weight-bold text-uppercase">Total: {{number_format($valeur['factures']->montant_total,'0','.',' ')}} FCFA</td>
+            <td colspan="5"></td>
+            <td style="font-size: 14px" class="text-success font-weight-bold text-uppercase">Total HT: {{number_format($valeur['factures']->montant_total,'0','.',' ')}} FCFA</td>
+        </tr>
+        <tr class="total">
+            <td colspan="5"></td>
+            <td style="font-size: 14px" class="text-success font-weight-bold text-uppercase">Total TTC: {{number_format($valeur['factures']->montant_total_ttc,'0','.',' ')}} FCFA</td>
         </tr>
     </table>
 </div>

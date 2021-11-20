@@ -54,17 +54,22 @@ class ApiVentesControllers extends Controller
         $code_commande = $this->genererCodeCommande();
         foreach ($produits as $prod){
             $prix = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_produit']);
+            $prix_ttc = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_produit_ttc']);
             DB::table('commandes')->insert(array(
                 'code_produit'=>$prod['code_produit'],
                 'quantite_acheter'=>$prod['quantite_acheter'],
                 'code_commande'=>$code_commande,
-                'total_payer'=>$prix
+                'total_payer'=>$prix,
+                'total_payer_ttc'=>$prix_ttc
             ));
         }
+
         DB::table('bon_commande')->insert(array(
             'code_commande'=>$code_commande,
             'montant_total'=>(float)$request->montant_total,
-            'matricule_clients'=>(int)$request->clients
+            'montant_total_ttc'=>(float)$request->montant_total_ttc,
+            'matricule_clients'=>(int)$request->clients,
+            'date_commande'=>$request->date_commande,
         ));
 
         return response()->json($code_commande, 201);
@@ -90,7 +95,7 @@ class ApiVentesControllers extends Controller
             ->join('produits','produits.code_produit','commandes.code_produit')
             ->where('commandes.code_commande','=',$code_commande)->get();
         $valeur = array('factures'=>$facture_data, 'element'=>$element_facture);
-        $date_jour = $this->dateToFrench(date('Y-m-d'),'l j F Y');
+        $date_jour = $this->dateToFrench($valeur['factures']->date_commande,'l j F Y');
         return view("commande",compact(['valeur','date_jour']));
         //$pdf = PDF::loadView("commande",compact(['valeur','date_jour']))->setPaper('a4', 'portrait')->setWarnings(false);
         //return $pdf->stream();
@@ -107,7 +112,7 @@ class ApiVentesControllers extends Controller
             ->join('produits','produits.code_produit','commandes.code_produit')
             ->where('commandes.code_commande','=',$code_commande)->get();
         $valeur = array('factures'=>$facture_data, 'element'=>$element_facture);
-        $date_jour = $this->dateToFrench(date('Y-m-d'),'l j F Y');
+        $date_jour = $this->dateToFrench($valeur['factures']->date_commande,'l j F Y');
         return view("livraison",compact(['valeur','date_jour']));
         //$pdf = PDF::loadView("livraison",compact(['valeur','date_jour']))->setPaper('a4', 'portrait')->setWarnings(false);
         //return $pdf->stream();
@@ -120,11 +125,11 @@ class ApiVentesControllers extends Controller
 
     public function listes_commandes(){
         $commandes = DB::table('bon_commande')
-->selectRaw('versement.code_facture,bon_commande.code_commande,clients.nom,clients.prenoms,bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.montant_total')
+->selectRaw('versement.code_facture,bon_commande.code_commande,clients.nom,clients.prenoms,bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.montant_total,bon_commande.montant_total_ttc')
             ->join('clients','clients.id','bon_commande.matricule_clients')
 ->leftJoin('factures','factures.code_facture','=','bon_commande.code_facture')
 ->leftJoin('versement','factures.code_facture','=','versement.code_facture')
-->groupByRaw('versement.code_facture,bon_commande.code_commande,clients.nom,clients.prenoms,bon_commande.statut_prod,bon_commande.montant_total')
+->groupByRaw('versement.code_facture,bon_commande.code_commande,clients.nom,clients.prenoms,bon_commande.statut_prod,bon_commande.montant_total,bon_commande.montant_total_ttc')
             ->get();
         return response($commandes,201);
     }
@@ -172,23 +177,25 @@ class ApiVentesControllers extends Controller
     public function ventes(Request $request){
         $statut = (int) $request->statut_produit;
         if($statut == 1){
-
             $produits = $request->produits;
             $code_facture = $this->genererCodeFacture();
             foreach ($produits as $prod){
                 $prix = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_produit']);
+                $prix_ttc = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_produit_ttc']);
                 DB::table('ventes')->insert(array(
                     'code_produit'=>$prod['code_produit'],
                     'quantite_acheter'=>$prod['quantite_acheter'],
                     'code_facture'=>$code_facture,
-                    'total_payer'=>$prix
+                    'total_payer'=>$prix,
+                    'total_payer_ttc'=>$prix_ttc
                 ));
             }
-
             DB::table('factures')->insert(array(
                 'code_facture'=>$code_facture,
                 'montant_total_factures'=>(float)$request->montant_total,
-                'matricule_clients_factures'=>(int)$request->clients
+                'montant_total_factures_ttc'=>(float)$request->montant_total_ttc,
+                'matricule_clients_factures'=>(int)$request->clients,
+                'date_facture'=>$request->date_facture
             ));
 
             DB::table('versement')->insert(array(
@@ -243,7 +250,7 @@ $versements_data = DB::table('versement')
             ->where('code_facture','=',$code_facture)
             ->get();
         $valeur = array('factures'=>$facture_data, 'element'=>$element_facture,'versement'=>$versement,'versements_data'=>$versements_data);
-        $date_jour = $this->dateToFrench(date('Y-m-d'),'l j F Y');
+        $date_jour = $this->dateToFrench($valeur['factures']->date_facture,'l j F Y');
         return view("facture",compact(['valeur','date_jour']));
         //$pdf = PDF::loadView("facture",compact(['valeur','date_jour']))->setPaper('a4', 'portrait')->setWarnings(false);
         //return $pdf->stream();
@@ -258,12 +265,12 @@ $versements_data = DB::table('versement')
             ->selectRaw('
             produits.id as id_bon_livraison,produits.code_produit,produits.libelle_produit
        ,produits.quantite_produit , sum(ventes.quantite_acheter) as quantite_vendu,
-commandes.quantite_acheter,produits.prix_produit,commandes.quantite_acheter as comm_quantite
+commandes.quantite_acheter,produits.prix_produit,produits.prix_produit_ttc,commandes.quantite_acheter as comm_quantite
             ')
             ->join('commandes','commandes.code_produit','produits.code_produit')
             ->leftJoin('ventes','ventes.code_produit','=','produits.code_produit')
             ->where('commandes.code_commande','=',$code_commande)
-            ->groupByRaw('commandes.quantite_acheter, produits.code_produit, produits.libelle_produit, produits.id, produits.prix_produit')
+            ->groupByRaw('commandes.quantite_acheter,produits.prix_produit_ttc,produits.code_produit, produits.libelle_produit, produits.id, produits.prix_produit')
             ->get();
 
         foreach($produits as $produit){
@@ -274,6 +281,7 @@ commandes.quantite_acheter,produits.prix_produit,commandes.quantite_acheter as c
                 "libelle_produit" => $produit->libelle_produit,
                 "quantite_produit" => $quantite_disponible,
                 "prix_produit" => $produit->prix_produit,
+                "prix_produit_ttc"=>$produit->prix_produit_ttc,
                 "quantite_acheter"=>$produit->comm_quantite,
             );
 
@@ -289,12 +297,15 @@ commandes.quantite_acheter,produits.prix_produit,commandes.quantite_acheter as c
 
         foreach ($produits as $prod){
             $prix = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_produit']);
+            $prix_ttc = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_produit_ttc']);
+
             DB::table('commandes')
                 ->where('code_produit','=',$prod['code_produit'])
                 ->where('code_commande','=',$code_commande)
                 ->update(array(
                     'quantite_acheter'=>$prod['quantite_acheter'],
-                    'total_payer'=>$prix
+                    'total_payer'=>$prix,
+                    'total_payer_ttc' =>$prix_ttc
                 ))
             ;
         }
@@ -302,7 +313,9 @@ commandes.quantite_acheter,produits.prix_produit,commandes.quantite_acheter as c
         $update = DB::table('bon_commande')
             ->where('code_commande','=',$code_commande)
             ->update(array(
-                'montant_total' =>(float)$request->montant_total
+                'montant_total' =>(float)$request->montant_total,
+                'montant_total_ttc' =>(float)$request->montant_total_ttc,
+                'date_commande' => $request->date_commande
             ));
 
         return response()->json($update, 201);
