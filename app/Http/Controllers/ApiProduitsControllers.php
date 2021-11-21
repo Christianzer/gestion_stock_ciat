@@ -256,18 +256,27 @@ class ApiProduitsControllers extends Controller
         $produits = DB::table('produits')->select('*')->get();
         foreach($produits as $produit){
             $code_produit = $produit->code_produit;
+
+
             $quantite_vendu = DB::table('ventes')
                 ->join('factures','factures.code_facture','=','ventes.code_facture')
                 ->where('factures.date_facture','=',$date_demande)->where('ventes.code_produit','=',$code_produit)
                 ->sum('ventes.quantite_acheter');
+
+
             $quantite_commander = DB::table('commandes')
                 ->join('bon_commande','bon_commande.code_commande','=','commandes.code_commande')
                 ->where('bon_commande.date_commande','=',$date_demande)
                 ->where('commandes.code_produit','=',$code_produit)->sum('commandes.quantite_acheter');
+
+
+            $quantite_produit = (int)$produit->quantite_produit;
+
+
             $e = array(
                 "code_produit"=> $code_produit,
                 "libelle_produit"=> $produit->libelle_produit,
-                "quantite_produit"=> $quantite_produit = (int)$produit->quantite_produit,
+                "quantite_produit"=> $quantite_produit,
                 "prix_produit"=> $prix_produit = (float)$produit->prix_produit,
                 "prix_produit_ttc"=> $prix_produit_ttc = (float)$produit->prix_produit_ttc,
                 "quantite_vendu"=> (int)$quantite_vendu,
