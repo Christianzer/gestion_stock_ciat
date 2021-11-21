@@ -49,3 +49,5 @@ Route::put('livraison/{code_commande}', [ApiVentesControllers::class,'update_liv
 Route::get('imprimer_livraison/{code_commande}', [ApiVentesControllers::class,'imprimer_livraison']);
 
 Route::get('dash',[ApiClientsControllers::class,'getData']);
+Route::get('rapport/{date_demande}', [ApiProduitsControllers::class,'getrapport']);
+Route::get('imprimer_rapport/{date_demande}', [ApiProduitsControllers::class,'imprimer_rapport']);
