@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Classes\StatePdf;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -10,13 +10,19 @@ class ApiProduitsControllers extends Controller
 {
     //
     public function getProduits(){
+        $date_jour = date("Y-m-d");
         $valeur = array();
         $valeur["element"] = array();
-        $produits = DB::table('produits')->select('*')->get();
+        $produits = DB::table('produits')
+            ->join('catalogue_produits','catalogue_produits.code_produit','=','produits.code_produit')
+            ->where('catalogue_produits.created_at','=',$date_jour)
+            ->select('*')->get();
         foreach($produits as $produit){
             $element = DB::table('ventes')
-                ->select(DB::raw('SUM(quantite_acheter) as vendu'))
-                ->where('code_produit','=',$produit->code_produit)->first();
+                ->join('factures','factures.code_facture','=','ventes.code_facture')
+                ->select(DB::raw('SUM(ventes.quantite_acheter) as vendu'))
+                ->where('factures.date_facture','=',$date_jour)
+                ->where('ventes.code_produit','=',$produit->code_produit)->first();
             if ($element->vendu == null){
                 $quantite_disponible = (int)$produit->quantite_produit;
             }else{
@@ -42,21 +48,30 @@ class ApiProduitsControllers extends Controller
 
     public function createProduits(Request $request) {
 
-        $code_produit = $request->input('code_produit');
-        $libelle_produit = $request->input('libelle_produit');
-        $quantite_produit = $request->input('quantite_produit');
-        $prix_produit = $request->input('prix_produit');
-        $prix_produit_ttc = $request->input('prix_produit_ttc');
+        $date_jour = date("Y-m-d");
 
-        $data = array(
+        $code_produit = $request->code_produit;
+        $libelle_produit = $request->libelle_produit;
+        $quantite_produit = $request->quantite_produit;
+        $prix_produit = $request->prix_produit;
+        $prix_produit_ttc = $request->prix_produit_ttc;
+
+        $data_produits = array(
             'code_produit'=>$code_produit,
-            'libelle_produit'=>$libelle_produit,
-            'quantite_produit'=>$quantite_produit,
-            'prix_produit'=>$prix_produit,
-            'prix_produit_ttc'=>$prix_produit_ttc
+            'libelle_produit'=>$libelle_produit
         );
 
-        $clients = DB::table('produits')->insert($data);
+        $data_catalogues = array(
+            'code_produit'=>$code_produit,
+            'quantite_produit'=>$quantite_produit,
+            'prix_produit'=>$prix_produit,
+            'prix_produit_ttc'=>$prix_produit_ttc,
+            'created_at'=>$date_jour
+        );
+
+        $clients = DB::table('produits')->insert($data_produits);
+
+        $insert_catalogue = DB::table('catalogue_produits')->insert($data_catalogues);
 
         if ($clients){
             return response()->json($clients, 201);
@@ -70,23 +85,34 @@ class ApiProduitsControllers extends Controller
     }
 
 
-    public function updateProduits(Request $request,$id) {
-        $code_produit = $request->input('code_produit');
-        $libelle_produit = $request->input('libelle_produit');
-        $quantite_produit = $request->input('quantite_produit');
-        $prix_produit = $request->input('prix_produit');
-        $prix_produit_ttc = $request->input('prix_produit_ttc');
+    public function updateProduits(Request $request,$code_prod) {
 
-        $data = array(
+        $date_jour = date("Y-m-d");
+        $code_produit = $request->code_produit;
+        $libelle_produit = $request->libelle_produit;
+        $quantite_produit = $request->quantite_produit;
+        $prix_produit = $request->prix_produit;
+        $prix_produit_ttc = $request->prix_produit_ttc;
+
+        $data_produits = array(
             'code_produit'=>$code_produit,
-            'libelle_produit'=>$libelle_produit,
-            'quantite_produit'=>$quantite_produit,
-            'prix_produit'=>$prix_produit,
-            'prix_produit_ttc'=>$prix_produit_ttc
+            'libelle_produit'=>$libelle_produit
         );
 
-        $clients = DB::table('produits')->where('id','=',$id)
-            ->update($data);
+        $data_catalogues = array(
+            'code_produit'=>$code_produit,
+            'quantite_produit'=>$quantite_produit,
+            'prix_produit'=>$prix_produit,
+            'prix_produit_ttc'=>$prix_produit_ttc,
+        );
+
+        $clients = DB::table('produits')->where('code_produit','=',$code_prod)
+            ->update($data_produits);
+
+        $insert_catalogue = DB::table('catalogue_produits')
+            ->where('code_produit','=',$code_prod)
+            ->where('created_at','=',$date_jour)
+            ->update($data_catalogues);
 
         if ($clients){
             return response()->json($clients, 201);
@@ -99,8 +125,10 @@ class ApiProduitsControllers extends Controller
 
     }
 
-    public function deleteProduits ($id) {
-        $delete = DB::table('produits')->where('id','=',$id)->delete();
+    public function deleteProduits ($code_prod) {
+        $date_jour = date("Y-m-d");
+        $delete = DB::table('produits')->where('code_produit','=',$code_prod)->delete();
+        $delete_catalogue = DB::table('catalogue_produits')->where('created_at','=',$date_jour)->where('code_produit','=',$code_prod)->delete();
         if ($delete){
             return response()->json($delete, 201);
         }
@@ -253,16 +281,18 @@ class ApiProduitsControllers extends Controller
         $produits_restants_ht_total = 0;
         $produits_restants_ttc_total = 0;
 
-        $produits = DB::table('produits')->select('*')->get();
+        $produits = DB::table('produits')
+            ->join('catalogue_produits','catalogue_produits.code_produit','=','produits.code_produit')
+            ->where('catalogue_produits.created_at','=',$date_demande)
+            ->select('*')->get();
+
         foreach($produits as $produit){
             $code_produit = $produit->code_produit;
-
 
             $quantite_vendu = DB::table('ventes')
                 ->join('factures','factures.code_facture','=','ventes.code_facture')
                 ->where('factures.date_facture','=',$date_demande)->where('ventes.code_produit','=',$code_produit)
                 ->sum('ventes.quantite_acheter');
-
 
             $quantite_commander = DB::table('commandes')
                 ->join('bon_commande','bon_commande.code_commande','=','commandes.code_commande')

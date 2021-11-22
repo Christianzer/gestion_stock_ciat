@@ -81,6 +81,8 @@ class ApiVentesControllers extends Controller
             ->where('bon_commande.code_commande','=',$code_commande)->first();
         $element_facture = DB::table('commandes')
             ->join('produits','produits.code_produit','commandes.code_produit')
+            ->join('catalogue_produits','catalogue_produits.code_produit','=','commandes.code_produit')
+            ->where('catalogue_produits.created_at','=',date('Y-m-d'))
             ->where('commandes.code_commande','=',$code_commande)->get();
         $valeur = array('factures'=>$facture_data, 'element'=>$element_facture);
         return response()->json($valeur, 201);
@@ -93,6 +95,8 @@ class ApiVentesControllers extends Controller
             ->where('bon_commande.code_commande','=',$code_commande)->first();
         $element_facture = DB::table('commandes')
             ->join('produits','produits.code_produit','commandes.code_produit')
+            ->join('catalogue_produits','catalogue_produits.code_produit','=','commandes.code_produit')
+            ->where('catalogue_produits.created_at','=',date('Y-m-d'))
             ->where('commandes.code_commande','=',$code_commande)->get();
         $valeur = array('factures'=>$facture_data, 'element'=>$element_facture);
         $date_jour = $this->dateToFrench($valeur['factures']->date_commande,'l j F Y');
@@ -110,6 +114,8 @@ class ApiVentesControllers extends Controller
             ->where('bon_commande.code_commande','=',$code_commande)->first();
         $element_facture = DB::table('commandes')
             ->join('produits','produits.code_produit','commandes.code_produit')
+            ->join('catalogue_produits','catalogue_produits.code_produit','=','commandes.code_produit')
+            ->where('catalogue_produits.created_at','=',date('Y-m-d'))
             ->where('commandes.code_commande','=',$code_commande)->get();
         $valeur = array('factures'=>$facture_data, 'element'=>$element_facture);
         $date_jour = $this->dateToFrench($valeur['factures']->date_commande,'l j F Y');
@@ -166,6 +172,8 @@ class ApiVentesControllers extends Controller
 
         $element_facture = DB::table('commandes')
             ->join('produits','produits.code_produit','commandes.code_produit')
+            ->join('catalogue_produits','catalogue_produits.code_produit','=','commandes.code_produit')
+            ->where('catalogue_produits.created_at','=',date('Y-m-d'))
             ->where('commandes.code_commande','=',$code_commande)->get();
         $valeur = array('factures'=>$facture_data, 'element'=>$element_facture);
 
@@ -230,6 +238,8 @@ $versements_data = DB::table('versement')
             ->get();
         $element_facture = DB::table('ventes')
             ->join('produits','produits.code_produit','ventes.code_produit')
+            ->join('catalogue_produits','catalogue_produits.code_produit','=','ventes.code_produit')
+            ->where('catalogue_produits.created_at','=',date('Y-m-d'))
             ->where('ventes.code_facture','=',$code_facture)->get();
         $valeur = array('factures'=>$facture_data, 'element'=>$element_facture,'versement'=>$versement,'versements_data'=>$versements_data);
         return response()->json($valeur, 201);
@@ -242,6 +252,8 @@ $versements_data = DB::table('versement')
             ->where('factures.code_facture','=',$code_facture)->first();
         $element_facture = DB::table('ventes')
             ->join('produits','produits.code_produit','ventes.code_produit')
+            ->join('catalogue_produits','catalogue_produits.code_produit','=','ventes.code_produit')
+            ->where('catalogue_produits.created_at','=',date('Y-m-d'))
             ->where('ventes.code_facture','=',$code_facture)->get();
 $versement = DB::table('versement')
             ->where('code_facture','=',$code_facture)
@@ -264,13 +276,16 @@ $versements_data = DB::table('versement')
         $produits = DB::table('produits')
             ->selectRaw('
             produits.id as id_bon_livraison,produits.code_produit,produits.libelle_produit
-       ,produits.quantite_produit , sum(ventes.quantite_acheter) as quantite_vendu,
-commandes.quantite_acheter,produits.prix_produit,produits.prix_produit_ttc,commandes.quantite_acheter as comm_quantite
+       ,catalogue_produits.quantite_produit , sum(ventes.quantite_acheter) as quantite_vendu,
+commandes.quantite_acheter,catalogue_produits.prix_produit,catalogue_produits.prix_produit_ttc,commandes.quantite_acheter as comm_quantite
             ')
+            ->join('catalogue_produits','catalogue_produits.code_produit','=','produits.code_produit')
             ->join('commandes','commandes.code_produit','produits.code_produit')
             ->leftJoin('ventes','ventes.code_produit','=','produits.code_produit')
             ->where('commandes.code_commande','=',$code_commande)
-            ->groupByRaw('commandes.quantite_acheter,produits.prix_produit_ttc,produits.code_produit, produits.libelle_produit, produits.id, produits.prix_produit')
+            ->where('catalogue_produits.created_at','=',date('Y-m-d'))
+            ->groupByRaw('commandes.quantite_acheter,catalogue_produits.prix_produit_ttc,produits.code_produit, produits.libelle_produit,
+            produits.id, catalogue_produits.prix_produit,catalogue_produits.quantite_produit')
             ->get();
 
         foreach($produits as $produit){
