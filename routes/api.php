@@ -30,7 +30,7 @@ Route::delete('clients/{id}', [ApiClientsControllers::class,'deleteClient']);
 
 Route::get('produits',[ApiProduitsControllers::class,'getProduits']);
 Route::post('produits', [ApiProduitsControllers::class,'createProduits']);
-Route::put('produits/{code_prod}', [ApiProduitsControllers::class,'updateProduits']);
+Route::post('produits_update', [ApiProduitsControllers::class,'updateProduits']);
 Route::delete('produits/{code_prod}', [ApiProduitsControllers::class,'deleteProduits']);
 
 Route::post('ventes', [ApiVentesControllers::class,'ventes']);

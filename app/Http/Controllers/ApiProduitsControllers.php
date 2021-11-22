@@ -85,7 +85,7 @@ class ApiProduitsControllers extends Controller
     }
 
 
-    public function updateProduits(Request $request,$code_prod) {
+    public function updateProduits(Request $request) {
 
         $date_jour = date("Y-m-d");
         $code_produit = $request->code_produit;
@@ -93,6 +93,7 @@ class ApiProduitsControllers extends Controller
         $quantite_produit = $request->quantite_produit;
         $prix_produit = $request->prix_produit;
         $prix_produit_ttc = $request->prix_produit_ttc;
+        $code_prod = $request->code_prod;
 
         $data_produits = array(
             'code_produit'=>$code_produit,
