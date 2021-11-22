@@ -115,14 +115,8 @@ class ApiProduitsControllers extends Controller
             ->where('created_at','=',$date_jour)
             ->update($data_catalogues);
 
-        if ($clients){
-            return response()->json($clients, 201);
-        }
 
-        else{
-            return response()->json( null,400);
-
-        }
+        return response()->json($clients,201);
 
     }
 
@@ -149,6 +143,8 @@ class ApiProduitsControllers extends Controller
     }
 
     public function imprimer_rapport($date_demande){
+
+
         $valeur = array();
         $valeur["element"] = array();
         $valeur_totaux = array();
@@ -169,21 +165,32 @@ class ApiProduitsControllers extends Controller
         $produits_restants_ht_total = 0;
         $produits_restants_ttc_total = 0;
 
-        $produits = DB::table('produits')->select('*')->get();
+        $produits = DB::table('produits')
+            ->join('catalogue_produits','catalogue_produits.code_produit','=','produits.code_produit')
+            ->where('catalogue_produits.created_at','=',$date_demande)
+            ->select('*')->get();
+
         foreach($produits as $produit){
             $code_produit = $produit->code_produit;
+
             $quantite_vendu = DB::table('ventes')
                 ->join('factures','factures.code_facture','=','ventes.code_facture')
                 ->where('factures.date_facture','=',$date_demande)->where('ventes.code_produit','=',$code_produit)
                 ->sum('ventes.quantite_acheter');
+
             $quantite_commander = DB::table('commandes')
                 ->join('bon_commande','bon_commande.code_commande','=','commandes.code_commande')
                 ->where('bon_commande.date_commande','=',$date_demande)
                 ->where('commandes.code_produit','=',$code_produit)->sum('commandes.quantite_acheter');
+
+
+            $quantite_produit = (int)$produit->quantite_produit;
+
+
             $e = array(
                 "code_produit"=> $code_produit,
                 "libelle_produit"=> $produit->libelle_produit,
-                "quantite_produit"=> $quantite_produit = (int)$produit->quantite_produit,
+                "quantite_produit"=> $quantite_produit,
                 "prix_produit"=> $prix_produit = (float)$produit->prix_produit,
                 "prix_produit_ttc"=> $prix_produit_ttc = (float)$produit->prix_produit_ttc,
                 "quantite_vendu"=> (int)$quantite_vendu,
@@ -239,25 +246,10 @@ class ApiProduitsControllers extends Controller
         );
 
         $valeur_totaux["total"][] = $totaux_valeurs;
+
         $title = "RAPPORT DU ".$this->dateToFrench($date_demande,'l j F Y');
         return view('rapport',compact(['valeur','totaux_valeurs','title']));
 
-        /*
-        $html_content = $view->render();
-        $pdf = new StatePDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-        $pdf->SetMargins(14, 40, PDF_MARGIN_RIGHT,true);
-        $pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
-        $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
-        $title = "RAPPORT DU ".$this->dateToFrench($date_demande,'l j F Y');
-        $pdf->setTitle($title);
-        $pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
-        $pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
-        $pdf->SetDisplayMode('fullpage', 'SinglePage', 'UseNone');
-        $pdf->SetFont('helvetica', '', 10);
-        $pdf->AddPage('L', 'A4');
-        $pdf->writeHTML($html_content, true, false, false, false, '');
-        $pdf->Output("rapport_du_{$date_demande}.pdf", 'I');
-        */
 
     }
 
