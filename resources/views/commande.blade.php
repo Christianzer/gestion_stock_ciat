@@ -153,8 +153,8 @@
         <tr class="heading">
 
             <td>LIBELLE PRODUIT</td>
-            <td>PRIX HT</td>
-            <td>PRIX TTC</td>
+            <td>PRIX COMMANDE HT</td>
+            <td>PRIX COMMANDE TTC</td>
             <td class="text-uppercase">Quantité</td>
             <td>TOTAL HT</td>
             <td>TOTAL TTC</td>
@@ -163,8 +163,8 @@
             <tr class="item">
 
                 <td style="font-size: 14px" class="text-primary font-weight-bold">{{$produit->libelle_produit}}</td>
-                <td style="font-size: 14px" class="text-primary font-weight-bold">{{number_format($produit->prix_produit,'0','.',' ')}} FCFA</td>
-                <td style="font-size: 14px" class="text-primary font-weight-bold">{{number_format($produit->prix_produit_ttc,'0','.',' ')}} FCFA</td>
+                <td style="font-size: 14px" class="text-primary font-weight-bold">{{number_format($produit->prix_vente,'0','.',' ')}} FCFA</td>
+                <td style="font-size: 14px" class="text-primary font-weight-bold">{{number_format($produit->prix_ventes_ttc,'0','.',' ')}} FCFA</td>
                 <td style="font-size: 14px" class="text-primary font-weight-bold">{{$produit->quantite_acheter}}</td>
                 <td style="font-size: 14px" class="text-primary font-weight-bold">{{number_format($produit->total_payer,'0','.',' ')}} FCFA</td>
                 <td style="font-size: 14px" class="text-primary font-weight-bold">{{number_format($produit->total_payer_ttc,'0','.',' ')}} FCFA</td>

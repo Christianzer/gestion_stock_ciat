@@ -104,10 +104,13 @@ class ApiClientsControllers extends Controller
 
         //initialiser produit jour
         $date_jour = date("Y-m-d");
+
         $voir_element_jour = DB::table('catalogue_produits')->where('created_at','=',$date_jour)->exists();
+
         $voir_element_avant = DB::table('catalogue_produits')
             ->where('created_at','<',$date_jour)
             ->orderByDesc('created_at')->exists();
+
         if(!$voir_element_jour && $voir_element_avant){
             $this->initialiser($date_jour);
         }
@@ -214,15 +217,26 @@ class ApiClientsControllers extends Controller
 
     public function initialiser($date_initiator){
 
-        $voir_element_avant = DB::table('catalogue_produits')
+        $date_avant = DB::table('catalogue_produits')
             ->where('created_at','<',$date_initiator)
-            ->orderByDesc('created_at')->get();
+            ->orderByDesc('created_at')
+            ->limit(1)
+            ->first();
+
+        $voir_element_avant = DB::table('catalogue_produits')
+            ->where('created_at','=',$date_avant->created_at)
+            ->get();
 
         foreach ($voir_element_avant as $ajouter_prod){
 
+            $voir_vente = DB::table('factures')
+                ->join('ventes','ventes.code_facture','=','factures.code_facture')
+                ->where('ventes.code_produit','=',$ajouter_prod->code_produit)
+                ->where('factures.date_facture','=',$date_avant->created_at)->sum('ventes.quantite_acheter');
+
             DB::table('catalogue_produits')->insert(array(
                 'code_produit'=>$ajouter_prod->code_produit,
-                'quantite_produit'=>(int)$ajouter_prod->quantite_produit,
+                'quantite_produit'=>(int)$ajouter_prod->quantite_produit - (int)$voir_vente,
                 'prix_produit'=>(float)$ajouter_prod->prix_produit,
                 'prix_produit_ttc'=>(float)$ajouter_prod->prix_produit_ttc,
                 'created_at'=>$date_initiator

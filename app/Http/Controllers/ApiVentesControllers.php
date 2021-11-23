@@ -53,12 +53,15 @@ class ApiVentesControllers extends Controller
         $produits = $request->produits;
         $code_commande = $this->genererCodeCommande();
         foreach ($produits as $prod){
-            $prix = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_produit']);
-            $prix_ttc = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_produit_ttc']);
+            $prix = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_vente']);
+            $prix_vente_ttc = floor((float)$prod['prix_vente'] * 1.18);
+            $prix_ttc = (float)((int)$prod['quantite_acheter'] * $prix_vente_ttc);
             DB::table('commandes')->insert(array(
                 'code_produit'=>$prod['code_produit'],
                 'quantite_acheter'=>$prod['quantite_acheter'],
                 'code_commande'=>$code_commande,
+                'prix_vente'=>(float)$prod['prix_vente'],
+                'prix_ventes_ttc'=>$prix_vente_ttc,
                 'total_payer'=>$prix,
                 'total_payer_ttc'=>$prix_ttc
             ));
@@ -188,11 +191,14 @@ class ApiVentesControllers extends Controller
             $produits = $request->produits;
             $code_facture = $this->genererCodeFacture();
             foreach ($produits as $prod){
-                $prix = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_produit']);
-                $prix_ttc = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_produit_ttc']);
+                $prix = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_vente']);
+                $prix_vente_ttc = floor((float)$prod['prix_vente'] * 1.18);
+                $prix_ttc = (float)((int)$prod['quantite_acheter'] * $prix_vente_ttc);
                 DB::table('ventes')->insert(array(
                     'code_produit'=>$prod['code_produit'],
                     'quantite_acheter'=>$prod['quantite_acheter'],
+                    'prix_vente'=>(float)$prod['prix_vente'],
+                    'prix_ventes_ttc'=>$prix_vente_ttc,
                     'code_facture'=>$code_facture,
                     'total_payer'=>$prix,
                     'total_payer_ttc'=>$prix_ttc
@@ -273,11 +279,12 @@ $versements_data = DB::table('versement')
     //bon_livraison
 
     public function read_bon_livraison($code_commande){
+
         $produits = DB::table('produits')
             ->selectRaw('
             produits.id as id_bon_livraison,produits.code_produit,produits.libelle_produit
        ,catalogue_produits.quantite_produit , sum(ventes.quantite_acheter) as quantite_vendu,
-commandes.quantite_acheter,catalogue_produits.prix_produit,catalogue_produits.prix_produit_ttc,commandes.quantite_acheter as comm_quantite
+commandes.quantite_acheter,catalogue_produits.prix_produit,catalogue_produits.prix_produit_ttc,commandes.prix_vente,commandes.prix_ventes_ttc,commandes.quantite_acheter as comm_quantite
             ')
             ->join('catalogue_produits','catalogue_produits.code_produit','=','produits.code_produit')
             ->join('commandes','commandes.code_produit','produits.code_produit')
@@ -285,7 +292,7 @@ commandes.quantite_acheter,catalogue_produits.prix_produit,catalogue_produits.pr
             ->where('commandes.code_commande','=',$code_commande)
             ->where('catalogue_produits.created_at','=',date('Y-m-d'))
             ->groupByRaw('commandes.quantite_acheter,catalogue_produits.prix_produit_ttc,produits.code_produit, produits.libelle_produit,
-            produits.id, catalogue_produits.prix_produit,catalogue_produits.quantite_produit')
+            produits.id, catalogue_produits.prix_produit,catalogue_produits.quantite_produit,commandes.prix_vente,commandes.prix_ventes_ttc')
             ->get();
 
         foreach($produits as $produit){
@@ -297,6 +304,8 @@ commandes.quantite_acheter,catalogue_produits.prix_produit,catalogue_produits.pr
                 "quantite_produit" => $quantite_disponible,
                 "prix_produit" => $produit->prix_produit,
                 "prix_produit_ttc"=>$produit->prix_produit_ttc,
+                "prix_vente" => $produit->prix_vente,
+                "prix_vente_ttc"=>$produit->prix_ventes_ttc,
                 "quantite_acheter"=>$produit->comm_quantite,
             );
 
@@ -311,14 +320,18 @@ commandes.quantite_acheter,catalogue_produits.prix_produit,catalogue_produits.pr
         $produits = $request->produits;
 
         foreach ($produits as $prod){
-            $prix = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_produit']);
-            $prix_ttc = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_produit_ttc']);
+
+            $prix = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_vente']);
+            $prix_vente_ttc = floor((float)$prod['prix_vente'] * 1.18);
+            $prix_ttc = (float)((int)$prod['quantite_acheter'] * $prix_vente_ttc);
 
             DB::table('commandes')
                 ->where('code_produit','=',$prod['code_produit'])
                 ->where('code_commande','=',$code_commande)
                 ->update(array(
                     'quantite_acheter'=>$prod['quantite_acheter'],
+                    'prix_vente'=>(float)$prod['prix_vente'],
+                    'prix_ventes_ttc'=>$prix_vente_ttc,
                     'total_payer'=>$prix,
                     'total_payer_ttc' =>$prix_ttc
                 ))

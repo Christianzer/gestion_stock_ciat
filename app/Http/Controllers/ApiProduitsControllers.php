@@ -35,6 +35,7 @@ class ApiProduitsControllers extends Controller
                 "quantite_produit" => $quantite_disponible,
                 "prix_produit" => $produit->prix_produit,
                 "prix_produit_ttc" => $produit->prix_produit_ttc,
+                "prix_vente" => $produit->prix_produit,
                 "quantite_acheter"=>1,
                 "consulter"=>false
             );
@@ -144,7 +145,6 @@ class ApiProduitsControllers extends Controller
 
     public function imprimer_rapport($date_demande){
 
-
         $valeur = array();
         $valeur["element"] = array();
         $valeur_totaux = array();
@@ -183,8 +183,30 @@ class ApiProduitsControllers extends Controller
                 ->where('bon_commande.date_commande','=',$date_demande)
                 ->where('commandes.code_produit','=',$code_produit)->sum('commandes.quantite_acheter');
 
+            $quantite_vendu_ht = DB::table('ventes')
+                ->join('factures','factures.code_facture','=','ventes.code_facture')
+                ->where('factures.date_facture','=',$date_demande)->where('ventes.code_produit','=',$code_produit)
+                ->sum('ventes.total_payer');
+
+            $quantite_commander_ht = DB::table('commandes')
+                ->join('bon_commande','bon_commande.code_commande','=','commandes.code_commande')
+                ->where('bon_commande.date_commande','=',$date_demande)
+                ->where('commandes.code_produit','=',$code_produit)->sum('commandes.total_payer');
+
+            $quantite_vendu_ttc = DB::table('ventes')
+                ->join('factures','factures.code_facture','=','ventes.code_facture')
+                ->where('factures.date_facture','=',$date_demande)->where('ventes.code_produit','=',$code_produit)
+                ->sum('ventes.total_payer_ttc');
+
+            $quantite_commander_ttc = DB::table('commandes')
+                ->join('bon_commande','bon_commande.code_commande','=','commandes.code_commande')
+                ->where('bon_commande.date_commande','=',$date_demande)
+                ->where('commandes.code_produit','=',$code_produit)
+                ->sum('commandes.total_payer_ttc');
+
 
             $quantite_produit = (int)$produit->quantite_produit;
+
 
 
             $e = array(
@@ -197,10 +219,10 @@ class ApiProduitsControllers extends Controller
                 "quantiter_commander"=> (int)$quantite_commander,
                 "stock_ht"=> $stock_ht = (int)$produit->quantite_produit * (float)$produit->prix_produit,
                 "stock_ttc"=> $stock_ttc = (int)$produit->quantite_produit * (float)$produit->prix_produit_ttc,
-                "commander_ht"=> $commander_ht = (int)$quantite_commander * (float)$produit->prix_produit,
-                "commander_ttc"=> $commander_ttc = (int)$quantite_commander * (float)$produit->prix_produit_ttc,
-                "ventes_ht"=> $ventes_ht = (int)$quantite_vendu * (float)$produit->prix_produit,
-                "ventes_ttc"=> $ventes_ttc = (int)$quantite_vendu * (float)$produit->prix_produit_ttc,
+                "commander_ht"=> $commander_ht = (float)$quantite_commander_ht,
+                "commander_ttc"=> $commander_ttc = (float)$quantite_commander_ttc,
+                "ventes_ht"=> $ventes_ht = (float)$quantite_vendu_ht,
+                "ventes_ttc"=> $ventes_ttc = (float)$quantite_vendu_ttc,
                 "produits_restants"=> $produits_restants = ((int)$produit->quantite_produit-(int)$quantite_vendu),
                 "produits_restants_ht"=> $produits_restants_ht=((int)$produit->quantite_produit-(int)$quantite_vendu) * (float)$produit->prix_produit,
                 "produits_restants_ttc"=> $produits_restants_ttc=((int)$produit->quantite_produit-(int)$quantite_vendu) * (float)$produit->prix_produit_ttc,
@@ -247,6 +269,7 @@ class ApiProduitsControllers extends Controller
 
         $valeur_totaux["total"][] = $totaux_valeurs;
 
+
         $title = "RAPPORT DU ".$this->dateToFrench($date_demande,'l j F Y');
         return view('rapport',compact(['valeur','totaux_valeurs','title']));
 
@@ -292,8 +315,30 @@ class ApiProduitsControllers extends Controller
                 ->where('bon_commande.date_commande','=',$date_demande)
                 ->where('commandes.code_produit','=',$code_produit)->sum('commandes.quantite_acheter');
 
+            $quantite_vendu_ht = DB::table('ventes')
+                ->join('factures','factures.code_facture','=','ventes.code_facture')
+                ->where('factures.date_facture','=',$date_demande)->where('ventes.code_produit','=',$code_produit)
+                ->sum('ventes.total_payer');
+
+            $quantite_commander_ht = DB::table('commandes')
+                ->join('bon_commande','bon_commande.code_commande','=','commandes.code_commande')
+                ->where('bon_commande.date_commande','=',$date_demande)
+                ->where('commandes.code_produit','=',$code_produit)->sum('commandes.total_payer');
+
+            $quantite_vendu_ttc = DB::table('ventes')
+                ->join('factures','factures.code_facture','=','ventes.code_facture')
+                ->where('factures.date_facture','=',$date_demande)->where('ventes.code_produit','=',$code_produit)
+                ->sum('ventes.total_payer_ttc');
+
+            $quantite_commander_ttc = DB::table('commandes')
+                ->join('bon_commande','bon_commande.code_commande','=','commandes.code_commande')
+                ->where('bon_commande.date_commande','=',$date_demande)
+                ->where('commandes.code_produit','=',$code_produit)
+                ->sum('commandes.total_payer_ttc');
+
 
             $quantite_produit = (int)$produit->quantite_produit;
+
 
 
             $e = array(
@@ -306,10 +351,10 @@ class ApiProduitsControllers extends Controller
                 "quantiter_commander"=> (int)$quantite_commander,
                 "stock_ht"=> $stock_ht = (int)$produit->quantite_produit * (float)$produit->prix_produit,
                 "stock_ttc"=> $stock_ttc = (int)$produit->quantite_produit * (float)$produit->prix_produit_ttc,
-                "commander_ht"=> $commander_ht = (int)$quantite_commander * (float)$produit->prix_produit,
-                "commander_ttc"=> $commander_ttc = (int)$quantite_commander * (float)$produit->prix_produit_ttc,
-                "ventes_ht"=> $ventes_ht = (int)$quantite_vendu * (float)$produit->prix_produit,
-                "ventes_ttc"=> $ventes_ttc = (int)$quantite_vendu * (float)$produit->prix_produit_ttc,
+                "commander_ht"=> $commander_ht = (float)$quantite_commander_ht,
+                "commander_ttc"=> $commander_ttc = (float)$quantite_commander_ttc,
+                "ventes_ht"=> $ventes_ht = (float)$quantite_vendu_ht,
+                "ventes_ttc"=> $ventes_ttc = (float)$quantite_vendu_ttc,
                 "produits_restants"=> $produits_restants = ((int)$produit->quantite_produit-(int)$quantite_vendu),
                 "produits_restants_ht"=> $produits_restants_ht=((int)$produit->quantite_produit-(int)$quantite_vendu) * (float)$produit->prix_produit,
                 "produits_restants_ttc"=> $produits_restants_ttc=((int)$produit->quantite_produit-(int)$quantite_vendu) * (float)$produit->prix_produit_ttc,
@@ -357,5 +402,45 @@ class ApiProduitsControllers extends Controller
         $valeur_totaux["total"][] = $totaux_valeurs;
 
         return response()->json(['element'=>$valeur,'total'=>$totaux_valeurs],201);
+    }
+
+    public function getnewrapport($date_demande){
+
+        $valeur_commande = array();
+        $valeur_commande["commande"] = array();
+        $valeur_ventes = array();
+        $valeur_ventes["ventes"] = array();
+
+
+        $produits_jour = DB::table('produits')
+            ->join('catalogue_produits','catalogue_produits.code_produit','=','produits.code_produit')
+            ->where('catalogue_produits.created_at','=',$date_demande)->get();
+
+        $commandes_jour = DB::table('commandes')
+            ->join('bon_commande','bon_commande.code_commande','=','commandes.code_commande')
+            ->join('produits','commandes.code_produit','=','produits.code_produit')
+            ->join('clients','clients.id','=','bon_commande.matricule_clients')
+            ->where('bon_commande.date_commande','=',$date_demande)
+            ->get();
+
+
+        foreach($commandes_jour as $produit){
+
+        }
+
+        $ventes_jour = DB::table('ventes')
+            ->join('factures','factures.code_facture','=','ventes.code_facture')
+            ->join('produits','ventes.code_produit','=','produits.code_produit')
+            ->join('clients','clients.id','=','factures.matricule_clients_factures')
+            ->where('factures.date_facture','=',$date_demande)->get();
+
+        $valeur = array(
+          'produits_jour'=>$produits_jour,
+          'commandes_jour'=>$commandes_jour,
+          //'ventes_jour'=>$ventes_jour
+        );
+
+        return response()->json($valeur,201);
+
     }
 }
