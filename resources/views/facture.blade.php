@@ -106,13 +106,40 @@
 <body>
 <div class="invoice-box center_page">
     <table>
-        <tr>
-            <td colspan="6" class="font-weight-bold text-primary"> FACTURE N°: {{$valeur['factures']->code_facture}}</td>
+
+        <tr class="top">
+            <td colspan="6">
+                <table>
+                    <tr>
+                        <td class="title">
+
+                            <img src="http://syge.univ-fhb.edu.ci/donne/logo.bmp" style="width:100%; max-width:150px;">
+
+                        </td>
+                        <td class="font-weight-bold text-primary">
+                            BON DE COMMANDE N° : {{$valeur['factures']->code_commande}}
+                        </td>
+                        <td class="font-weight-bold text-primary text-uppercase">
+                            DATE DE COMMANDE : {{$date_jour}}
+                        </td>
+                    </tr>
+                </table>
+            </td>
         </tr>
-        <tr>
-            <td colspan="6" class="font-weight-bold text-primary text-uppercase"> DATE FACTURE : {{$date_jour}}</td>
+
+        <tr class="information">
+            <td colspan="6">
+                <table>
+                    <tr>
+                        <td class="font-weight-bold text-primary text-uppercase">
+                            OBF - S.A - Capital 10.000.000 Fcfa<br> 06 BP 1044 Abidjan 06 Côte d'Ivoire<br>  Tél : (225)27.76.300.400 / 07.07.64.64.48
+                        </td>
+                    </tr>
+                </table>
+            </td>
         </tr>
-        <tr style="height: 20px"></tr>
+        <tr style="height: 50px"></tr>
+
         <tr class="heading">
             <td colspan="6" class="text-uppercase text-danger font-weight-bold">Information Client</td>
         </tr>
@@ -159,5 +186,10 @@
 
     </table>
 </div>
+<footer>
+    OBF - S.A - Capital 10.000.000 Fcfa - Abidjan-Cocody-Bonoumin, imm. CIAT - RC : CI-ABJ-03-2021-B14-00027
+    , CC : 2109932-Y
+    Regime :  Réel Simplifié, 06 BP 1044 Abidjan 06 Côte d'Ivoire - Tél : (225)27.24.325.178 / 05.76.300.400 / 07.07.646.448
+</footer>
 </body>
 </html>
