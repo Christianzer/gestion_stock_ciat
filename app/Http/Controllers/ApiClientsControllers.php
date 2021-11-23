@@ -244,5 +244,19 @@ class ApiClientsControllers extends Controller
         }
     }
 
+    public function getClientsCommande($matricule){
+        $information = DB::table('bon_commande')
+            ->where('statut_prod','=',2)
+            ->where('matricule_clients','=',$matricule)
+            ->get();
+        return response()->json($information, 201);
+
+    }
+
+    public function getClientsFactures($matricule){
+        $information = DB::table('factures')->where('matricule_clients_factures','=',$matricule)->get();
+        return response()->json($information, 201);
+    }
+
 
 }

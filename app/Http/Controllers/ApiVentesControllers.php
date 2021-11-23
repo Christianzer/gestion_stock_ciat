@@ -134,14 +134,25 @@ class ApiVentesControllers extends Controller
 
     public function listes_commandes(){
         $commandes = DB::table('bon_commande')
-->selectRaw('versement.code_facture,bon_commande.code_commande,
+            ->selectRaw('versement.code_facture,bon_commande.code_commande,
 clients.nom,clients.prenoms,
 bon_commande.date_commande,
 bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.montant_total,bon_commande.montant_total_ttc')
             ->join('clients','clients.id','bon_commande.matricule_clients')
-->leftJoin('factures','factures.code_facture','=','bon_commande.code_facture')
-->leftJoin('versement','factures.code_facture','=','versement.code_facture')
-->groupByRaw('versement.code_facture,bon_commande.date_commande,bon_commande.code_commande,clients.nom,clients.prenoms,bon_commande.statut_prod,bon_commande.montant_total,bon_commande.montant_total_ttc')
+            ->where('bon_commande.statut_prod','=',1)
+            ->leftJoin('factures','factures.code_facture','=','bon_commande.code_facture')
+            ->leftJoin('versement','factures.code_facture','=','versement.code_facture')
+            ->groupByRaw('versement.code_facture,bon_commande.date_commande,bon_commande.code_commande,clients.nom,clients.prenoms,bon_commande.statut_prod,bon_commande.montant_total,bon_commande.montant_total_ttc')
+            ->get();
+        return response($commandes,201);
+    }
+
+    public function listes_commandes_effectuer(){
+        $commandes = DB::table('bon_commande')
+           ->selectRaw('distinctrow bon_commande.matricule_clients,bon_commande.code_facture,bon_commande.code_commande,
+clients.nom,clients.prenoms')
+            ->join('clients','bon_commande.matricule_clients','=','clients.id')
+            ->where('statut_prod','=',2)
             ->get();
         return response($commandes,201);
     }
@@ -239,10 +250,10 @@ bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.mo
         $facture_data = DB::table('factures')
             ->join('clients','clients.id','factures.matricule_clients_factures')
             ->where('factures.code_facture','=',$code_facture)->first();
- $versement = DB::table('versement')
+        $versement = DB::table('versement')
             ->where('code_facture','=',$code_facture)
             ->sum('montant_verser');
-$versements_data = DB::table('versement')
+        $versements_data = DB::table('versement')
             ->where('code_facture','=',$code_facture)
             ->get();
         $element_facture = DB::table('ventes')
@@ -264,10 +275,10 @@ $versements_data = DB::table('versement')
             ->join('catalogue_produits','catalogue_produits.code_produit','=','ventes.code_produit')
             ->where('catalogue_produits.created_at','=',date('Y-m-d'))
             ->where('ventes.code_facture','=',$code_facture)->get();
-$versement = DB::table('versement')
+        $versement = DB::table('versement')
             ->where('code_facture','=',$code_facture)
             ->sum('montant_verser');
-$versements_data = DB::table('versement')
+        $versements_data = DB::table('versement')
             ->where('code_facture','=',$code_facture)
             ->get();
         $valeur = array('factures'=>$facture_data, 'element'=>$element_facture,'versement'=>$versement,'versements_data'=>$versements_data);

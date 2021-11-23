@@ -42,6 +42,7 @@ Route::get('commandes/{code_commande}', [ApiVentesControllers::class,'read_comma
 Route::get('imprimer_commandes/{code_commande}', [ApiVentesControllers::class,'imprimer_commande']);
 
 Route::get('listes_commandes', [ApiVentesControllers::class,'listes_commandes']);
+Route::get('listes_commandes_effectuer', [ApiVentesControllers::class,'listes_commandes_effectuer']);
 Route::get('remplir_facture/{code_commande}', [ApiVentesControllers::class,'remplir_facture']);
 
 Route::get('remplir_bon_livraison/{code_commande}', [ApiVentesControllers::class,'read_bon_livraison']);
@@ -52,3 +53,6 @@ Route::get('dash',[ApiClientsControllers::class,'getData']);
 Route::get('rapport/{date_demande}', [ApiProduitsControllers::class,'getrapport']);
 Route::get('new_rapport/{date_demande}', [ApiProduitsControllers::class,'getnewrapport']);
 Route::get('imprimer_rapport/{date_demande}', [ApiProduitsControllers::class,'imprimer_rapport']);
+
+Route::get('listes_commandes_data/{matricule}',[ApiClientsControllers::class,'getClientsCommande']);
+Route::get('listes_factures_data/{matricule}',[ApiClientsControllers::class,'getClientsFactures']);
