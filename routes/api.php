@@ -56,3 +56,4 @@ Route::get('imprimer_rapport/{date_demande}', [ApiProduitsControllers::class,'im
 
 Route::get('listes_commandes_data/{matricule}',[ApiClientsControllers::class,'getClientsCommande']);
 Route::get('listes_factures_data/{matricule}',[ApiClientsControllers::class,'getClientsFactures']);
+

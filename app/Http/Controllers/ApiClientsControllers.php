@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -98,7 +99,19 @@ class ApiClientsControllers extends Controller
 
     public function getData() {
 
+        $verifiez_bd = $this->verifiez_bd();
+        $maj_recent = $this->sauvegarde_bd();
+        if ($verifiez_bd){
+            $reponse = $this->lancer_save_autre();
+        }else{
+            if ($maj_recent){
+                $reponse = $this->lancer_save_autre();
+            }
+        }
+        return response()->json($reponse);
 
+
+        /*
         $valeur = array();
         $valeur["element"] = array();
 
@@ -157,6 +170,7 @@ class ApiClientsControllers extends Controller
             ->groupByRaw('produits.code_produit,produits.libelle_produit,catalogue_produits.quantite_produit,catalogue_produits.prix_produit')->get();
 */
 
+        /*
         $ventes_realiser = DB::table('factures')->select(DB::raw('sum(montant_total_factures) as montant_total'))->first();
         $ventes_realiser_ttc = DB::table('factures')->select(DB::raw('sum(montant_total_factures_ttc) as montant_total'))->first();
 
@@ -213,6 +227,7 @@ class ApiClientsControllers extends Controller
         ), 201);
 
 
+        */
     }
 
     public function initialiser($date_initiator){
@@ -256,6 +271,75 @@ class ApiClientsControllers extends Controller
     public function getClientsFactures($matricule){
         $information = DB::table('factures')->where('matricule_clients_factures','=',$matricule)->get();
         return response()->json($information, 201);
+    }
+
+    public function NbJours($debut, $fin) {
+
+        $tDeb = explode("-", $debut);
+        $tFin = explode("-", $fin);
+
+        $diff = mktime(0, 0, 0, $tFin[1], $tFin[2], $tFin[0]) -
+            mktime(0, 0, 0, $tDeb[1], $tDeb[2], $tDeb[0]);
+
+        return(($diff / 86400)+1);
+
+    }
+
+    public function sauvegarde_bd(){
+
+        $date_jour = date("Y-m-d");
+
+        $datebdrecent = DB::table('sauvegarde_bd')->where('date_sauvegarde','<',$date_jour)
+            ->orderByDesc('date_sauvegarde')
+            ->limit(1)
+            ->first();
+
+
+        if($datebdrecent == null){
+            $date_default = $date_jour;
+        }else{
+            $date_default = $datebdrecent->date_sauvegarde;
+        }
+
+
+        $nbres_jours = $this->NbJours($date_jour,$date_default);
+
+        return $nbres_jours > 7;
+
+    }
+
+    public function verifiez_bd(){
+        $date_jour = date("Y-m-d");
+        $db_exists = DB::table('sauvegarde_bd')->where('date_sauvegarde','=',$date_jour)->exists();
+        $datebdrecent = DB::table('sauvegarde_bd')->where('date_sauvegarde','<',$date_jour)->exists();
+        return !$db_exists && !$datebdrecent;
+    }
+
+    public function lancer_save(){
+        $date_jour = date("Y-m-d");
+        $filename = "save_bd_".$date_jour.".sql";
+        $command = "mysqldump --user=" . env('DB_USERNAME') ." --password=" . env('DB_PASSWORD') . " --host=" . env('DB_HOST') . " " . env('DB_DATABASE') . "  > " . storage_path() . "/app/backup/" . $filename;
+        $returnVar = NULL;
+        $output  = NULL;
+        exec($command, $output, $returnVar);
+        DB::table('sauvegarde_bd')->insert(array(
+            'date_sauvegarde'=>$date_jour
+        ));
+
+    }
+
+    public function lancer_save_autre(){
+        $date_jour = date("Y-m-d");
+        $filename = "save_bd_".$date_jour.".sql";
+        $mysqlDatabaseName =env('DB_DATABASE');
+        $mysqlUserName =env('DB_USERNAME');
+        $mysqlPassword =env('DB_PASSWORD');
+        $mysqlHostName =env('DB_HOST');
+        $mysqlExportPath  =storage_path() . "/app/backup/" . $filename;
+        $command='mysqldump --opt -h' .$mysqlHostName .' -u' .$mysqlUserName .' -p' .$mysqlPassword .' ' .$mysqlDatabaseName .' > ' .$mysqlExportPath;
+        $returnVar = NULL;
+        $output  = NULL;
+        exec($command,$output,$returnVar);
     }
 
 
