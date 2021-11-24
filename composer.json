@@ -13,6 +13,7 @@
         "fideloper/proxy": "^4.4",
         "fruitcake/laravel-cors": "^2.0",
         "guzzlehttp/guzzle": "^6.3.1|^7.0.1",
+        "ifsnop/mysqldump-php": "^2.9",
         "ismaeltoe/osms": "^2.0",
         "laravel/framework": "^7.29",
         "laravel/nexmo-notification-channel": "^2.5",
@@ -20,6 +21,7 @@
         "nexmo/laravel": "^2.4",
         "phpmailer/phpmailer": "^6.2",
         "setasign/fpdi": "^2.3",
+        "spatie/laravel-backup": "^6.16",
         "tecnickcom/tcpdf": "^6.4"
     },
     "require-dev": {
