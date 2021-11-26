@@ -104,11 +104,11 @@
     </style>
 </head>
 <body>
-<div class="invoice-box center_page">
+<div class="invoice-box">
     <table>
 
         <tr class="top">
-            <td colspan="6">
+            <td colspan="4">
                 <table>
                     <tr>
                         <td class="title">
@@ -117,10 +117,10 @@
 
                         </td>
                         <td class="font-weight-bold text-primary">
-                            BON DE COMMANDE N° : {{$valeur['factures']->code_commande}}
+                            FACTURE N° : {{$valeur['factures']->code_facture}}
                         </td>
                         <td class="font-weight-bold text-primary text-uppercase">
-                            DATE DE COMMANDE : {{$date_jour}}
+                            DATE DE FACTURE : {{$date_jour}}
                         </td>
                     </tr>
                 </table>
@@ -128,11 +128,11 @@
         </tr>
 
         <tr class="information">
-            <td colspan="6">
+            <td colspan="4">
                 <table>
                     <tr>
                         <td class="font-weight-bold text-primary text-uppercase">
-                            OBF - S.A - Capital 10.000.000 Fcfa<br> 06 BP 1044 Abidjan 06 Côte d'Ivoire<br>  Tél : (225)27.76.300.400 / 07.07.64.64.48
+                            OBF - S.A - Capital 10.000.000 Fcfa<br> 06 BP 1044 Abidjan 06 Côte d'Ivoire<br>  Tél : (225)27.24.325.178 / 07.07.64.64.48 / 05.76.30.04.00
                         </td>
                     </tr>
                 </table>
@@ -145,49 +145,48 @@
         </tr>
 
         <tr class="details font-weight-bold">
-            <td class="text-uppercase" colspan="2">{{$valeur['factures']->nom}} {{$valeur['factures']->prenoms}}</td>
+            <td class="text-uppercase">{{$valeur['factures']->nom}} {{$valeur['factures']->prenoms}}</td>
             <td>CC: {{$valeur['factures']->compte_contr}}</td>
             <td>Mail: {{$valeur['factures']->mail}}</td>
-            <td>Contact 1: {{$valeur['factures']->telephone}}</td>
-            <td>Contact 2: {{$valeur['factures']->contact}}</td>
+            <td>Contact 1: {{$valeur['factures']->telephone}} Contact 2: {{$valeur['factures']->contact}}</td>
         </tr>
 
         <tr class="heading">
             <td>LIBELLE PRODUIT</td>
             <td>PRIX HT</td>
-            <td>PRIX TTC</td>
             <td class="text-uppercase">Quantité</td>
             <td>TOTAL HT</td>
-            <td>TOTAL TTC</td>
         </tr>
         @foreach($valeur['element'] as $produit)
             <tr class="item">
-
-                <td style="font-size: 14px" class="text-primary font-weight-bold">{{$produit->libelle_produit}}</td>
-                <td style="font-size: 14px" class="text-primary font-weight-bold">{{number_format($produit->prix_vente,'0','.',' ')}} FCFA</td>
-                <td style="font-size: 14px" class="text-primary font-weight-bold">{{number_format($produit->prix_ventes_ttc,'0','.',' ')}} FCFA</td>
-                <td style="font-size: 14px" class="text-primary font-weight-bold">{{$produit->quantite_acheter}}</td>
-                <td style="font-size: 14px" class="text-primary font-weight-bold">{{number_format($produit->total_payer,'0','.',' ')}} FCFA</td>
-                <td style="font-size: 14px" class="text-primary font-weight-bold">{{number_format($produit->total_payer_ttc,'0','.',' ')}} FCFA</td>
+                <td style="font-size: 16px" class="text-primary font-weight-bold">{{$produit->libelle_produit}}</td>
+                <td style="font-size: 16px" class="text-primary font-weight-bold">{{number_format($produit->prix_vente,'0','.',' ')}} FCFA</td>
+                <td style="font-size: 16px" class="text-primary font-weight-bold">{{$produit->quantite_acheter}}</td>
+                <td style="font-size: 16px" class="text-primary font-weight-bold">{{number_format($produit->total_payer,'0','.',' ')}} FCFA</td>
             </tr>
         @endforeach
         <tr class="total">
-            <td colspan="5"></td>
-            <td style="font-size: 14px" class="text-success font-weight-bold text-uppercase">Total HT: {{number_format($valeur['factures']->montant_total_factures,'0','.',' ')}} FCFA</td>
+            <td colspan="3"></td>
+            <td style="font-size: 16px" class="text-success font-weight-bold text-uppercase">Total HT: {{number_format($valeur['factures']->montant_total,'0','.',' ')}} FCFA</td>
         </tr>
         <tr class="total">
-            <td colspan="5"></td>
-            <td style="font-size: 14px" class="text-success font-weight-bold text-uppercase">Total TTC: {{number_format($valeur['factures']->montant_total_factures_ttc,'0','.',' ')}} FCFA</td>
+            <td colspan="3"></td>
+            <td style="font-size: 16px" class="text-success font-weight-bold text-uppercase">TVA 18% : {{number_format(floor(($valeur['factures']->montant_total*18)/100),'0','.',' ')}} FCFA</td>
+        </tr>
+
+        <tr class="total">
+            <td colspan="3"></td>
+            <td style="font-size: 16px" class="text-success font-weight-bold text-uppercase">Total TTC: {{number_format(floor($valeur['factures']->montant_total_ttc),'0','.',' ')}} FCFA</td>
         </tr>
         <tr class="total">
-            <td colspan="5"></td>
-            <td style="font-size: 14px" class="text-primary font-weight-bold text-uppercase">Versement : {{number_format($valeur['versement'],'0','.',' ')}} FCFA</td>
+            <td colspan="3"></td>
+            <td style="font-size: 16px" class="text-primary font-weight-bold text-uppercase">Versement : {{number_format($valeur['versement'],'0','.',' ')}} FCFA</td>
         </tr>
 
     </table>
 </div>
 <footer>
-    OBF - S.A - Capital 10.000.000 Fcfa - Abidjan-Cocody-Bonoumin, imm. CIAT - RC : CI-ABJ-03-2021-B14-00027
+    OBF - S.A - Capital 10.000.000 Fcfa - Abidjan-Cocody-Bonoumin, imm. CIAT - RC : CI-ABJ-03-2021-B16-00027
     , CC : 2109932-Y
     Regime :  Réel Simplifié, 06 BP 1044 Abidjan 06 Côte d'Ivoire - Tél : (225)27.24.325.178 / 05.76.300.400 / 07.07.646.448
 </footer>
