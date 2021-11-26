@@ -181,13 +181,13 @@ class ApiClientsControllers extends Controller
 
         foreach ($chiffres_affaires_jour as $prod){
 
-            $vendu_produits = DB::table('factures')
-                ->join('ventes','ventes.code_facture','=','factures.code_facture')
-                ->where('ventes.code_produit','=',$prod->code_produit)
-                ->where('factures.date_facture','<',$date_jour)->sum('ventes.quantite_acheter');
+            $vendu_produits = DB::table('bon_commande')
+                ->join('commandes','commandes.code_commande','=','bon_commande.code_commande')
+                ->where('commandes.code_produit','=',$prod->code_produit)
+                ->where('bon_commande.date_commande','<',$date_jour)->sum('commandes.quantite_acheter');
 
             $conso_prod = (int)$prod->quantite_produit + (int)$vendu_produits;
-            $quantite_vendu = DB::table('ventes')->where('code_produit','=',$prod->code_produit)->sum('quantite_acheter');
+            $quantite_vendu = DB::table('commandes')->where('code_produit','=',$prod->code_produit)->sum('quantite_acheter');
 
             $e = array(
                 'code_produit'=>$prod->code_produit,
@@ -279,10 +279,11 @@ class ApiClientsControllers extends Controller
 
         foreach ($voir_element_avant as $ajouter_prod){
 
-            $voir_vente = DB::table('factures')
-                ->join('ventes','ventes.code_facture','=','factures.code_facture')
-                ->where('ventes.code_produit','=',$ajouter_prod->code_produit)
-                ->where('factures.date_facture','=',$date_avant->created_at)->sum('ventes.quantite_acheter');
+            $voir_vente = DB::table('bon_commande')
+                ->join('commandes','commandes.code_commande','=','bon_commande.code_commande')
+                ->where('commandes.code_produit','=',$ajouter_prod->code_produit)
+                ->where('bon_commande.statut_livraison','=',2)
+                ->where('bon_commande.date_commande','=',$date_avant->created_at)->sum('commandes.quantite_acheter');
 
             DB::table('catalogue_produits')->insert(array(
                 'code_produit'=>$ajouter_prod->code_produit,

@@ -136,13 +136,13 @@ class ApiVentesControllers extends Controller
         $commandes = DB::table('bon_commande')
             ->selectRaw('versement.code_facture,bon_commande.code_commande,
 clients.nom,clients.prenoms,
-bon_commande.date_commande,
+bon_commande.date_commande,bon_commande.statut_livraison,
 bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.montant_total,bon_commande.montant_total_ttc')
             ->join('clients','clients.id','bon_commande.matricule_clients')
             ->where('bon_commande.statut_prod','=',1)
             ->leftJoin('factures','factures.code_facture','=','bon_commande.code_facture')
             ->leftJoin('versement','factures.code_facture','=','versement.code_facture')
-            ->groupByRaw('versement.code_facture,bon_commande.date_commande,bon_commande.code_commande,clients.nom,clients.prenoms,bon_commande.statut_prod,bon_commande.montant_total,bon_commande.montant_total_ttc')
+            ->groupByRaw('versement.code_facture,bon_commande.statut_livraison,bon_commande.date_commande,bon_commande.code_commande,clients.nom,clients.prenoms,bon_commande.statut_prod,bon_commande.montant_total,bon_commande.montant_total_ttc')
             ->get();
         return response($commandes,201);
     }
@@ -357,6 +357,7 @@ commandes.quantite_acheter,catalogue_produits.prix_produit,catalogue_produits.pr
             ->update(array(
                 'montant_total' =>(float)$request->montant_total,
                 'montant_total_ttc' =>(float)$request->montant_total_ttc,
+                'statut_livraison'=>2,
                 'date_commande' => $request->date_commande
             ));
 

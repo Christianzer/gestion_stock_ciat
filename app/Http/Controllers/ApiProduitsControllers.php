@@ -18,11 +18,12 @@ class ApiProduitsControllers extends Controller
             ->where('catalogue_produits.created_at','=',$date_jour)
             ->select('*')->get();
         foreach($produits as $produit){
-            $element = DB::table('ventes')
-                ->join('factures','factures.code_facture','=','ventes.code_facture')
-                ->select(DB::raw('SUM(ventes.quantite_acheter) as vendu'))
-                ->where('factures.date_facture','=',$date_jour)
-                ->where('ventes.code_produit','=',$produit->code_produit)->first();
+            $element = DB::table('bon_commande')
+                ->join('commandes','commandes.code_commande','=','bon_commande.code_commande')
+                ->select(DB::raw('SUM(commandes.quantite_acheter) as vendu'))
+                ->where('bon_commande.date_commande','=',$date_jour)
+                ->where('bon_commande.statut_livraison','=',2)
+                ->where('commandes.code_produit','=',$produit->code_produit)->first();
             if ($element->vendu == null){
                 $quantite_disponible = (int)$produit->quantite_produit;
             }else{
