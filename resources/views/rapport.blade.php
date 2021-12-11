@@ -22,7 +22,7 @@ function formatage($valeur) {
         <tr class="text-center">
             <th colspan="3">Informations produits</th>
             <th colspan="3">Stocks initials</th>
-            <th colspan="3">Commandes</th>
+            <th colspan="3">Proformas</th>
             <th colspan="3">Ventes</th>
             <th colspan="3">Stocks restants</th>
         </tr>

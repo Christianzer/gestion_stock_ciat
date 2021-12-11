@@ -116,10 +116,10 @@
 
                         </td>
                         <td class="font-weight-bold text-primary">
-                            BON DE COMMANDE N° : {{$valeur['factures']->code_commande}}
+                            PROFORMA N° : {{$valeur['factures']->code_commande}}
                         </td>
                         <td class="font-weight-bold text-primary text-uppercase">
-                            DATE DE COMMANDE : {{$date_jour}}
+                            DATE PROFORMA : {{$date_jour}}
                         </td>
                     </tr>
                 </table>
@@ -151,16 +151,16 @@
 
         <tr class="heading">
             <td>LIBELLE PRODUIT</td>
-            <td>PRIX COMMANDE HT</td>
             <td class="text-uppercase">Quantité</td>
+            <td>PRIX UNITAIRE HT</td>
             <td>TOTAL HT</td>
         </tr>
         @foreach($valeur['element'] as $produit)
             <tr class="item">
 
                 <td style="font-size: 16px" class="text-primary font-weight-bold">{{$produit->libelle_produit}}</td>
-                <td style="font-size: 16px" class="text-primary font-weight-bold">{{number_format($produit->prix_vente,'0','.',' ')}} FCFA</td>
                 <td style="font-size: 16px" class="text-primary font-weight-bold">{{$produit->quantite_acheter}}</td>
+                <td style="font-size: 16px" class="text-primary font-weight-bold">{{number_format($produit->prix_vente,'0','.',' ')}} FCFA</td>
                 <td style="font-size: 16px" class="text-primary font-weight-bold">{{number_format($produit->total_payer,'0','.',' ')}} FCFA</td>
             </tr>
         @endforeach

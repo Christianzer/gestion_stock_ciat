@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ApiClientsControllers;
+use App\Http\Controllers\ApiModControllers;
 use App\Http\Controllers\ApiProduitsControllers;
 use App\Http\Controllers\ApiVentesControllers;
 use Illuminate\Http\Request;
@@ -56,4 +57,6 @@ Route::get('imprimer_rapport/{date_demande}', [ApiProduitsControllers::class,'im
 
 Route::get('listes_commandes_data/{matricule}',[ApiClientsControllers::class,'getClientsCommande']);
 Route::get('listes_factures_data/{matricule}',[ApiClientsControllers::class,'getClientsFactures']);
+
+Route::delete('supprimer/{code_commande}',[ApiModControllers::class,'delete_commande']);
 

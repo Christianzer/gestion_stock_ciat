@@ -149,7 +149,7 @@ bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.mo
 
     public function listes_commandes_effectuer(){
         $commandes = DB::table('bon_commande')
-           ->selectRaw('distinctrow bon_commande.matricule_clients,bon_commande.code_facture,bon_commande.code_commande,
+           ->selectRaw('distinctrow bon_commande.matricule_clients,
 clients.nom,clients.prenoms')
             ->join('clients','bon_commande.matricule_clients','=','clients.id')
             ->where('statut_prod','=',2)
@@ -266,23 +266,28 @@ clients.nom,clients.prenoms')
     }
 
     public function imprimer_facture($code_facture){
-        set_time_limit(300);
         $facture_data = DB::table('factures')
             ->join('clients','clients.id','factures.matricule_clients_factures')
             ->where('factures.code_facture','=',$code_facture)->first();
+
+
         $element_facture = DB::table('ventes')
             ->join('produits','produits.code_produit','ventes.code_produit')
             ->join('catalogue_produits','catalogue_produits.code_produit','=','ventes.code_produit')
-            ->where('catalogue_produits.created_at','=',date('Y-m-d'))
+            ->where('catalogue_produits.created_at','=','2021-11-23')
             ->where('ventes.code_facture','=',$code_facture)->get();
+
         $versement = DB::table('versement')
             ->where('code_facture','=',$code_facture)
             ->sum('montant_verser');
+
         $versements_data = DB::table('versement')
             ->where('code_facture','=',$code_facture)
             ->get();
+
         $valeur = array('factures'=>$facture_data, 'element'=>$element_facture,'versement'=>$versement,'versements_data'=>$versements_data);
         $date_jour = $this->dateToFrench($valeur['factures']->date_facture,'l j F Y');
+
         return view("facture",compact(['valeur','date_jour']));
         //$pdf = PDF::loadView("facture",compact(['valeur','date_jour']))->setPaper('a4', 'portrait')->setWarnings(false);
         //return $pdf->stream();
