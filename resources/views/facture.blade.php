@@ -7,8 +7,12 @@
             font-size: 20px;
         }
         .center_page {
-            padding: 300px 0;
+            padding: 350px 0;
         }
+table, th, td {
+  border: 3px solid black;
+  border-radius: 10px;
+}
     </style>
 </head>
 <body>
@@ -16,17 +20,17 @@
     <div class="row">
         <div class="col-md-6"></div>
         <div class="col-md-6">
-            <table class="table table-bordered">
-                <thead>
+            <table class="table">
+              
                 <tr>
-                    <th class="text-uppercase text-left">DATE</th>
+                    <th class="text-uppercase text-left" style="width:40%">DATE</th>
                     <th class="text-uppercase text-left">REFERENCE CLIENT</th>
                 </tr>
-                </thead>
-                <tbody>
+               
+                
                 <tr>
-                    <td class="text-uppercase text-left">{{$date_jour}}</td>
-                    <td class="text-uppercase text-left">
+                    <td class="text-uppercase text-left font-weight-bold">{{$date_jour}}</td>
+                    <td class="text-uppercase text-left font-weight-bold">
                         {{$valeur['factures']->nom}} {{$valeur['factures']->prenoms}}<br>
                         @isset($valeur['factures']->compte_contr)
                             {{$valeur['factures']->compte_contr}}<br>
@@ -35,28 +39,26 @@
                             {{$valeur['factures']->mail}}<br>
                         @endisset
                         @isset($valeur['factures']->telephone)
-                            {{$valeur['factures']->telephone}} {{$valeur['factures']->contact}}
+                            {{$valeur['factures']->telephone}} / {{$valeur['factures']->contact}}
                         @endisset
 
                     </td>
                 </tr>
-                </tbody>
+              
             </table>
         </div>
     </div>
     <div class="row">
         <div class="col-md-12">
-            <table class="table table-bordered">
-                <thead>
+            <table class="table">
+               
                 <tr>
                     <th class="text-uppercase font-weight-bold">désignation</th>
                     <th class="text-uppercase font-weight-bold">quantité</th>
-                    <th class="text-uppercase font-weight-bold">prix unitaire</th>
-                    <th class="text-uppercase font-weight-bold">total</th>
+                    <th class="text-uppercase font-weight-bold">prix unitaire ht</th>
+                    <th class="text-uppercase font-weight-bold">total ht</th>
                 </tr>
-                </thead>
-                <tbody>
-                @foreach($valeur['element'] as $produit)
+                  @foreach($valeur['element'] as $produit)
                     <tr>
                         <td class="font-weight-bold text-uppercase">{{$produit->libelle_produit}}</td>
                         <td class="font-weight-bold text-right">{{$produit->quantite_acheter}}</td>
@@ -64,8 +66,7 @@
                         <td class="font-weight-bold text-right">{{number_format($produit->total_payer,'0','.',' ')}} FCFA</td>
                     </tr>
                 @endforeach
-                </tbody>
-                <tfoot>
+              
                 <tr>
                     <td colspan="3" class="text-uppercase font-weight-bold text-right">Montant total ht</td>
                     <td  class="text-uppercase font-weight-bold text-right">{{number_format($valeur['factures']->montant_total_factures,'0','.',' ')}} FCFA</td>
@@ -78,11 +79,8 @@
                     <td colspan="3" class="text-uppercase font-weight-bold text-right">Montant total TTC</td>
                     <td class="text-uppercase font-weight-bold text-right">{{number_format(floor($valeur['factures']->montant_total_factures_ttc),'0','.',' ')}} FCFA</td>
                 </tr>
-                <tr>
-                    <td colspan="3" class="text-uppercase font-weight-bold text-right">Versement</td>
-                    <td class="text-uppercase font-weight-bold text-right">{{number_format($valeur['versement'],'0','.',' ')}} FCFA</td>
-                </tr>
-                </tfoot>
+                
+               
             </table>
         </div>
     </div>
