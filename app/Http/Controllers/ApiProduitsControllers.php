@@ -10,6 +10,7 @@ class ApiProduitsControllers extends Controller
 {
     //
     public function getProduits(){
+
         $date_jour = date("Y-m-d");
         $valeur = array();
         $valeur["element"] = array();
