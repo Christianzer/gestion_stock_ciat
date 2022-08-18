@@ -73,6 +73,7 @@ class ApiVentesControllers extends Controller
             'montant_total_ttc'=>(float)$request->montant_total_ttc,
             'matricule_clients'=>(int)$request->clients,
             'date_commande'=>$request->date_commande,
+            'date_commande_update'=>$request->update_data
         ));
 
         return response()->json($code_commande, 201);
@@ -93,6 +94,7 @@ class ApiVentesControllers extends Controller
 
     public function imprimer_commande($code_commande){
         set_time_limit(300);
+        $date_prendre = "";
         $facture_data = DB::table('bon_commande')
             ->join('clients','clients.id','bon_commande.matricule_clients')
             ->where('bon_commande.code_commande','=',$code_commande)->first();
@@ -102,7 +104,12 @@ class ApiVentesControllers extends Controller
             ->where('catalogue_produits.created_at','=',date('Y-m-d'))
             ->where('commandes.code_commande','=',$code_commande)->get();
         $valeur = array('factures'=>$facture_data, 'element'=>$element_facture);
-        $date_jour = $this->dateToFrench($valeur['factures']->date_commande,'l j F Y');
+        if (!is_null($valeur['factures']->date_commande_update)>0){
+            $date_prendre =   $valeur['factures']->date_commande_update;
+        }else{
+            $date_prendre =   $valeur['factures']->date_commande;
+        }
+        $date_jour = $this->dateToFrench($date_prendre,'l j F Y');
         return view("commande",compact(['valeur','date_jour']));
         //$pdf = PDF::loadView("commande",compact(['valeur','date_jour']))->setPaper('a4', 'portrait')->setWarnings(false);
         //return $pdf->stream();
@@ -121,7 +128,12 @@ class ApiVentesControllers extends Controller
             ->where('catalogue_produits.created_at','=',date('Y-m-d'))
             ->where('commandes.code_commande','=',$code_commande)->get();
         $valeur = array('factures'=>$facture_data, 'element'=>$element_facture);
-        $date_jour = $this->dateToFrench($valeur['factures']->date_commande,'l j F Y');
+        if (!is_null($valeur['factures']->date_commande_update)){
+            $date_prendre =   $valeur['factures']->date_commande_update;
+        }else{
+            $date_prendre =   $valeur['factures']->date_commande;
+        }
+        $date_jour = $this->dateToFrench($date_prendre,'l j F Y');
         return view("livraison",compact(['valeur','date_jour']));
         //$pdf = PDF::loadView("livraison",compact(['valeur','date_jour']))->setPaper('a4', 'portrait')->setWarnings(false);
         //return $pdf->stream();
@@ -142,7 +154,7 @@ bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.mo
             ->where('bon_commande.statut_prod','=',1)
             ->leftJoin('factures','factures.code_facture','=','bon_commande.code_facture')
             ->leftJoin('versement','factures.code_facture','=','versement.code_facture')
-            ->groupByRaw('versement.code_facture,bon_commande.statut_livraison,bon_commande.date_commande,bon_commande.code_commande,clients.nom,clients.prenoms,bon_commande.statut_prod,bon_commande.montant_total,bon_commande.montant_total_ttc')
+            ->groupByRaw('versement.code_facture,bon_commande.statut_livraison,bon_commande.date_commande,bon_commande.date_commande_update,bon_commande.code_commande,clients.nom,clients.prenoms,bon_commande.statut_prod,bon_commande.montant_total,bon_commande.montant_total_ttc')
             ->get();
         return response($commandes,201);
     }
@@ -223,7 +235,8 @@ clients.nom,clients.prenoms')
                 'montant_total_factures'=>(float)$request->montant_total,
                 'montant_total_factures_ttc'=>(float)$request->montant_total_ttc,
                 'matricule_clients_factures'=>(int)$request->clients,
-                'date_facture'=>$request->date_facture
+                'date_facture'=>$request->date_facture,
+                'date_facture_update'=>$request->date_facture_update
             ));
 
             DB::table('versement')->insert(array(
@@ -282,7 +295,12 @@ clients.nom,clients.prenoms')
             ->where('code_facture','=',$code_facture)
             ->get();
         $valeur = array('factures'=>$facture_data, 'element'=>$element_facture,'versement'=>$versement,'versements_data'=>$versements_data);
-        $date_jour = $this->dateToFrench($valeur['factures']->date_facture,'l j F Y');
+        if (!is_null($valeur['factures']->date_facture_update)){
+            $date_prendre =   $valeur['factures']->date_facture_update;
+        }else{
+            $date_prendre =   $valeur['factures']->date_facture;
+        }
+        $date_jour = $this->dateToFrench($date_prendre,'l j F Y');
         return view("facture",compact(['valeur','date_jour']));
         //$pdf = PDF::loadView("facture",compact(['valeur','date_jour']))->setPaper('a4', 'portrait')->setWarnings(false);
         //return $pdf->stream();
@@ -358,7 +376,9 @@ commandes.quantite_acheter,catalogue_produits.prix_produit,catalogue_produits.pr
                 'montant_total' =>(float)$request->montant_total,
                 'montant_total_ttc' =>(float)$request->montant_total_ttc,
                 'statut_livraison'=>2,
-                'date_commande' => $request->date_commande
+                'date_commande' => $request->date_commande,
+                'date_commande_update'=>$request->update_data
+
             ));
 
         return response()->json($update, 201);
