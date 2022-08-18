@@ -112,7 +112,7 @@
                     <tr>
                         <td class="title">
 
-                            <img src="http://syge.univ-fhb.edu.ci/donne/logo.bmp" style="width:100%; max-width:150px;">
+                            <img src="http://gstockob-api.sodenci.com/logo_obf.png" style="width:100%; max-width:150px;">
 
                         </td>
                         <td class="font-weight-bold text-primary">
