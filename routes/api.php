@@ -4,6 +4,7 @@ use App\Http\Controllers\ApiClientsControllers;
 use App\Http\Controllers\ApiModControllers;
 use App\Http\Controllers\ApiProduitsControllers;
 use App\Http\Controllers\ApiVentesControllers;
+use App\Http\Controllers\MobileApiControllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -60,3 +61,4 @@ Route::get('listes_factures_data/{matricule}',[ApiClientsControllers::class,'get
 
 Route::delete('supprimer/{code_commande}',[ApiModControllers::class,'delete_commande']);
 
+Route::get('mobile/clients',[MobileApiControllers::class,'MobileListesClients']);
