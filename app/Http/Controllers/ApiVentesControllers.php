@@ -151,20 +151,24 @@ clients.nom,clients.prenoms,
 bon_commande.date_commande,bon_commande.statut_livraison,
 bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.montant_total,bon_commande.montant_total_ttc')
             ->join('clients','clients.id','bon_commande.matricule_clients')
-            ->where('bon_commande.statut_prod','=',1)
             ->leftJoin('factures','factures.code_facture','=','bon_commande.code_facture')
             ->leftJoin('versement','factures.code_facture','=','versement.code_facture')
             ->groupByRaw('versement.code_facture,bon_commande.statut_livraison,bon_commande.date_commande,bon_commande.date_commande_update,bon_commande.code_commande,clients.nom,clients.prenoms,bon_commande.statut_prod,bon_commande.montant_total,bon_commande.montant_total_ttc')
+            ->havingRaw('bon_commande.montant_total_ttc > COALESCE(verser, 0 )')
             ->get();
+
         return response($commandes,201);
     }
 
     public function listes_commandes_effectuer(){
         $commandes = DB::table('bon_commande')
            ->selectRaw('distinctrow bon_commande.matricule_clients,
-clients.nom,clients.prenoms')
+clients.nom,clients.prenoms,sum(versement.montant_verser) as verser,bon_commande.montant_total,bon_commande.montant_total_ttc')
             ->join('clients','bon_commande.matricule_clients','=','clients.id')
-            ->where('statut_prod','=',2)
+            ->leftJoin('factures','factures.code_facture','=','bon_commande.code_facture')
+            ->leftJoin('versement','factures.code_facture','=','versement.code_facture')
+            ->groupByRaw('versement.code_facture,bon_commande.statut_livraison,bon_commande.date_commande,bon_commande.date_commande_update,bon_commande.code_commande,clients.nom,clients.prenoms,bon_commande.statut_prod,bon_commande.montant_total,bon_commande.montant_total_ttc')
+            ->havingRaw('COALESCE(verser, 0 ) >= bon_commande.montant_total_ttc')
             ->get();
         return response($commandes,201);
     }
