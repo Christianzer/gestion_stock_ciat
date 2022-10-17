@@ -85,22 +85,7 @@ class ApiClientsControllers extends Controller
     }
 
     public function db_save(){
-        $date_jour = date("Y-m-d");
-        $username = env('DB_USERNAME');
-        $mdp = env('DB_PASSWORD');
-        $host = env('DB_HOST');
-        $database = env('DB_DATABASE');
-        $filenames = "\save_bd_".$date_jour.".sql";
-        $filename = storage_path() . "\app\backup" . $filenames;
-        try {
-            $dump = new IMysqldump\Mysqldump('mysql:host='.$host.';dbname='.$database.'', $username, $mdp);
-            $dump->start($filename);
-            DB::table('sauvegarde_bd')->insert(array(
-                'date_sauvegarde'=>$date_jour
-            ));
-        } catch (\Exception $e) {
-            echo 'mysqldump-php error: ' . $e->getMessage();
-        }
+
     }
 
 
@@ -177,23 +162,26 @@ class ApiClientsControllers extends Controller
 
         $chiffres_affaires_jour = DB::table('catalogue_produits')
             ->join('produits','catalogue_produits.code_produit','=','produits.code_produit')
-            ->where('catalogue_produits.created_at','=',$date_jour)->get();
+            ->orderBy('catalogue_produits.created_at','asc')
+            ->limit(5)
+            ->get();
 
         foreach ($chiffres_affaires_jour as $prod){
 
             $vendu_produits = DB::table('bon_commande')
                 ->join('commandes','commandes.code_commande','=','bon_commande.code_commande')
                 ->where('commandes.code_produit','=',$prod->code_produit)
-                ->where('bon_commande.date_commande','<',$date_jour)->sum('commandes.quantite_acheter');
+                ->where('bon_commande.statut_livraison','=',2)
+                ->where('bon_commande.date_commande','<=',$date_jour)->sum('commandes.quantite_acheter');
 
-            $conso_prod = (int)$prod->quantite_produit + (int)$vendu_produits;
-            $quantite_vendu = DB::table('commandes')->where('code_produit','=',$prod->code_produit)->sum('quantite_acheter');
+            $conso_prod = (int)$prod->quantite_produit;
+
 
             $e = array(
                 'code_produit'=>$prod->code_produit,
                 'libelle_produit'=>$prod->libelle_produit,
                 'quantite_produit'=>$conso_prod,
-                'quantite_vendu'=>$quantite_vendu
+                'quantite_vendu'=>$vendu_produits
             );
 
             $valeur["element"][] = $e;

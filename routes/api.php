@@ -64,3 +64,8 @@ Route::delete('supprimer/{code_commande}',[ApiModControllers::class,'delete_comm
 Route::get('mobile/clients',[MobileApiControllers::class,'MobileListesClients']);
 Route::get('mobile/produits',[MobileApiControllers::class,'getProduitsMobiles']);
 Route::post('mobile/produits/achat',[MobileApiControllers::class,'FacturesMobiles']);
+
+
+Route::get('imprimer_rapport_compta', [ApiProduitsControllers::class,'imprimer_rapport_perso']);
+
+Route::post("facture_directe",[ApiVentesControllers::class,'facture_directe']);
