@@ -4,6 +4,7 @@ use App\Http\Controllers\ApiClientsControllers;
 use App\Http\Controllers\ApiModControllers;
 use App\Http\Controllers\ApiProduitsControllers;
 use App\Http\Controllers\ApiVentesControllers;
+use App\Http\Controllers\CaisseControllers;
 use App\Http\Controllers\MobileApiControllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -69,3 +70,6 @@ Route::post('mobile/produits/achat',[MobileApiControllers::class,'FacturesMobile
 Route::get('imprimer_rapport_compta', [ApiProduitsControllers::class,'imprimer_rapport_perso']);
 
 Route::post("facture_directe",[ApiVentesControllers::class,'facture_directe']);
+
+
+Route::get("factures_listes",[CaisseControllers::class,"listes"]);

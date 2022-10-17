@@ -439,10 +439,11 @@ class ApiProduitsControllers extends Controller
         foreach($produits as $produit){
             $code_produit = $produit->code_produit;
 
-            $quantite_vendu = DB::table('ventes')
-                ->join('factures','factures.code_facture','=','ventes.code_facture')
-                ->where('factures.date_facture','=',$date_demande)->where('ventes.code_produit','=',$code_produit)
-                ->sum('ventes.quantite_acheter');
+            $quantite_vendu = DB::table('commandes')
+                ->join('bon_commande','bon_commande.code_commande','=','commandes.code_commande')
+                ->where('bon_commande.date_commande_update','=',$date_demande)
+                ->where('bon_commande.statut_prod','=',2)
+                ->where('commandes.code_produit','=',$code_produit)->sum('commandes.quantite_acheter');
 
             $quantite_commander = DB::table('commandes')
                 ->join('bon_commande','bon_commande.code_commande','=','commandes.code_commande')
