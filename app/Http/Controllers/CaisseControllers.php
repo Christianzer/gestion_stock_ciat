@@ -23,7 +23,19 @@ class CaisseControllers extends Controller
             ->whereBetween('versement.date_versement',$date)
             ->get();
 
-        return response()->json($information,201);
+        $total = DB::table('factures')
+            ->join('versement','versement.code_facture','=','factures.code_facture')
+            ->join('clients','clients.id','=','factures.matricule_clients_factures')
+            ->join("information_paiement","information_paiement.code_versement",'=',"versement.code_versement")
+            ->whereBetween('versement.date_versement',$date)
+            ->sum('versement.montant_verser');
+
+        $info = array(
+          "information"=>$information,
+          "total"=>$total
+        );
+
+        return response()->json($info,201);
 
     }
 
