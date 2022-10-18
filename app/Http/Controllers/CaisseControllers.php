@@ -20,4 +20,14 @@ class CaisseControllers extends Controller
 
         return response()->json($listes,201);
     }
+
+    public function faire_versement(Request $request){
+        $data = array(
+            "montant_verser"=>$request->montant_verser,
+            "code_facture"=>$request->code_facture,
+            "date_versement"=>$request->date_versement,
+            "type_paiment"=>$request->type_paiment,
+        );
+        $id_insert = DB::table("versement")
+    }
 }
