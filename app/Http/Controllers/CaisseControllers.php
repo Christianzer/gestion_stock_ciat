@@ -28,6 +28,6 @@ class CaisseControllers extends Controller
             "date_versement"=>$request->date_versement,
             "type_paiment"=>$request->type_paiment,
         );
-        $id_insert = DB::table("versement")
+        $id_insert = DB::table("versement")->insertGetId()
     }
 }
