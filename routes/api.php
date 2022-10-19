@@ -75,4 +75,6 @@ Route::post("facture_directe",[ApiVentesControllers::class,'facture_directe']);
 Route::get("factures_listes",[CaisseControllers::class,"listes"]);
 Route::post('faire_paiement',[CaisseControllers::class,'faire_versement']);
 Route::post('recherche',[CaisseControllers::class,'recherche']);
+Route::get('imprimer/point/{date1}/{date2}',[CaisseControllers::class,'imprimerPoint']);
 Route::get('information/{code}',[CaisseControllers::class,'information']);
+Route::get('imprimer_recu/{code}',[CaisseControllers::class,'imprimer_recu']);

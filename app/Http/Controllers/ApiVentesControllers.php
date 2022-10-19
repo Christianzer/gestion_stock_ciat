@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 
-use Barryvdh\DomPDF\Facade as PDF;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 class ApiVentesControllers extends Controller
@@ -307,7 +307,7 @@ clients.nom,clients.prenoms,sum(versement.montant_verser) as verser,bon_commande
 
 
         DB::table('bon_commande')->where('code_commande','=',$request->code_commande)->update(array(
-            'statut_prod' =>2,'code_facture'=>$code_facture
+            'statut_prod' =>2,'code_facture'=>$code_facture,"statut_livraison"=>2
         ));
 
 

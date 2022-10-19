@@ -122,6 +122,46 @@ class ApiClientsControllers extends Controller
     public function getData() {
 
 
+
+
+        //pour les versements sans date
+        /*
+        $versement = DB::table('versement')
+            ->where("code_versement",'=',null)
+            ->where("date_versement",'=',null)
+            ->get();
+        foreach ($versement as $value){
+            $date_facture = DB::table('factures')->where('code_facture','=',$value->code_facture)->first();
+            if (isset($date_facture)){
+                if (is_null($date_facture->date_facture_update)){
+                    $date_versement = $date_facture->date_facture;
+                }else{
+                    $date_versement = $date_facture->date_facture_update;
+                }
+                $code = "OBF-ET".date('Y')."N".$value->id_versement;
+                DB::table("versement")
+                    ->where('code_facture','=',$date_facture->code_facture)
+                    ->update(array(
+                        "date_versement"=>$date_versement,
+                        "code_versement"=>$code
+                    ));
+                $dataPaiement = array(
+                    "code_versement"=>$code,
+                    "paiement"=>json_encode(array(
+                        "type_paiement"=>"Espèce",
+                        "montant"=>$value->montant_verser,
+                        "banque"=>null,
+                        "numero_cheque"=>null,
+                        "numero_telephone"=>null,
+                        "reseau"=>null
+                    ))
+                );
+
+                DB::table("information_paiement")->insert($dataPaiement);
+            }
+        }
+*/
+
         $verifiez_bd_jour = $this->verifiez_bd_jour();
         $verifiez_avant = $this->verifiez_bd_avant();
         $maj_recent = $this->sauvegarde_bd();
