@@ -279,6 +279,9 @@ class ApiClientsControllers extends Controller
             ->limit(3)
             ->get();
 
+        $decaissement = DB::table('sortie_caisse')
+            ->sum('sortie_caisse.montant_sortie_caisse');
+
         return response()->json(array(
             'clients'=>$clients,
             'produits'=>$produits,
@@ -288,7 +291,8 @@ class ApiClientsControllers extends Controller
             'ventes_realiser_ttc'=>$ventes_realiser_ttc,
             'ventes_a_realiser_ttc' =>$ventes_a_realiser_ttc,
             'top_five_clients'=>$top_five_clients,
-            'top_fives_produits'=>$top_fives_produits
+            'top_fives_produits'=>$top_fives_produits,
+            'decaissement'=>$decaissement
         ), 201);
 
     }
