@@ -74,7 +74,16 @@ Route::post("facture_directe",[ApiVentesControllers::class,'facture_directe']);
 
 Route::get("factures_listes",[CaisseControllers::class,"listes"]);
 Route::post('faire_paiement',[CaisseControllers::class,'faire_versement']);
-Route::post('recherche',[CaisseControllers::class,'recherche']);
-Route::get('imprimer/point/{date1}/{date2}',[CaisseControllers::class,'imprimerPoint']);
+
 Route::get('information/{code}',[CaisseControllers::class,'information']);
 Route::get('imprimer_recu/{code}',[CaisseControllers::class,'imprimer_recu']);
+
+
+Route::get('listes_sortie',[CaisseControllers::class,'sortie_listes']);
+Route::get("code_sortie",[CaisseControllers::class,'generercodeentre_sortie']);
+Route::post('facture_sortie',[CaisseControllers::class,'sortirCaisse']);
+Route::post('upload_sortie', [CaisseControllers::class,'upload_sortie']);
+Route::get('dowload_sortie/{id}',[CaisseControllers::class,'dowload_sortie']);
+Route::get('listes_justif_sortie/{code}',[CaisseControllers::class,'listes_justif_sortie']);
+Route::post('recherche',[CaisseControllers::class,'recherche']);
+Route::get('imprimer/point/{date1}/{date2}/{type}',[CaisseControllers::class,'imprimerPoint']);

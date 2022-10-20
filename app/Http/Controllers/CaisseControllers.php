@@ -9,66 +9,207 @@ class CaisseControllers extends Controller
 {
     //
 
+    public function listes_justif_sortie($code){
+        $data = DB::table('justif_sortie')->where('code_sortie','=',$code)->get();
+        return response()->json($data, 201);
+    }
+
+    public function dowload_sortie($id){
+        $upload_path = public_path('upload');
+        $element = DB::table('justif_sortie')->where('id_justif','=',$id)->first();
+        $ele = $upload_path.'/'.$element->justif;
+        return response()->download($ele,$element->justif);
+    }
+
+    public function upload_sortie(Request $request){
+        $uploadedFiles=$request->pics;
+        foreach ($uploadedFiles as $file){
+            $upload_path = public_path('upload');
+            $name=$file->getClientOriginalName();
+            $file->move($upload_path, $name);
+            DB::table('justif_sortie')
+                ->insert(array(
+                    'code_sortie'=>$request->code
+                ,'justif'=>$name));
+        }
+        return response('success',200);
+
+    }
+    public function sortirCaisse(Request $request){
+
+
+        $code = $request->input('code');
+        $libelle = $request->input('libelle');
+        $date_entre = $request->input('date_entre');
+        $observation = $request->input('observation');
+        $montant =(float)$request->input('montant');
+
+        $data = array(
+
+            'code_sortie'=>$code,
+            'libelle_sortie_caisse'=>$libelle,
+            'montant_sortie_caisse'=>$montant,
+            'date_sortie_caisse'=>$date_entre,
+            'observation'=>$observation,
+
+        );
+
+        $clients = DB::table('sortie_caisse')->insert($data);
+
+        if ($clients){
+            return response()->json($clients, 201);
+        }
+
+        else{
+            return response()->json( null,400);
+
+        }
+
+    }
+
+    public function codeincrementer($valeur){
+        $element = substr($valeur,-6);
+        return ++$element;
+    }
+
+    public function generercodeentre_sortie(){
+        $dernier = DB::table('sortie_caisse')
+            ->orderByDesc('id_sortie_sortie')->first();
+        if (isset($dernier)){
+            $data = $this->codeincrementer($dernier->code_sortie);
+            $code = "OBF-ST".date('Y').$data;
+        }else{
+            $code = "OBF-ST".date('Y')."N00001";
+        }
+
+        $code = $this->codege_sortie($code);
+
+        $total_entre = DB::table('versement')->sum('montant_verser');
+        $total_sortie = DB::table('sortie_caisse')->sum('montant_sortie_caisse');
+        $total = $total_entre - $total_sortie;
+        $data = array("code"=>$code,"total"=>$total);
+        return response()->json($data, 201);
+
+
+    }
+
+    public function codege_sortie($code){
+        $test = DB::table('sortie_caisse')->where('code_sortie','=',$code)
+            ->first();
+        if ($test){
+            $data = $this->codeincrementer($test->code_sortie);
+            $code = "OBF-ST".date('Y').$data;
+        }
+        return $code;
+
+    }
+
+    public function sortie_listes(){
+        $listes_paiement = DB::table('sortie_caisse')
+            ->leftJoin("justif_sortie",'sortie_caisse.code_sortie','=','justif_sortie.code_sortie')
+            ->select('sortie_caisse.*'
+                ,DB::raw("DATE_FORMAT(sortie_caisse.date_sortie_caisse, '%d/%m/%Y') as date_sortie")
+                ,DB::raw("(GROUP_CONCAT(justif_sortie.justif)) as `justif`")
+            )
+            ->orderByDesc('sortie_caisse.date_sortie_caisse')
+            ->groupBy("sortie_caisse.code_sortie")
+            ->get();
+        $total = DB::table('sortie_caisse')->sum('montant_sortie_caisse');
+        $total_entre = DB::table('versement')->sum('montant_verser');
+        $data = array("listes"=>$listes_paiement,"total"=>$total,"encaisse"=>$total_entre);
+        return response($data,200);
+    }
 
     public function recherche(Request $request){
         $date_debut = $request->date_debut;
         $date_fin = $request->date_fin;
+        $rapport = (int)$request->type_rapport;
 
         $date = [$date_debut,$date_fin];
 
-        $information = DB::table('factures')
-            ->join('versement','versement.code_facture','=','factures.code_facture')
-            ->join('clients','clients.id','=','factures.matricule_clients_factures')
-            ->join("information_paiement","information_paiement.code_versement",'=',"versement.code_versement")
-            ->whereBetween('versement.date_versement',$date)
-            ->orderByDesc('versement.date_versement')
-            ->get();
+        if ($rapport == 1):
+            $information = DB::table('factures')
+                ->join('versement','versement.code_facture','=','factures.code_facture')
+                ->join('clients','clients.id','=','factures.matricule_clients_factures')
+                ->join("information_paiement","information_paiement.code_versement",'=',"versement.code_versement")
+                ->whereBetween('versement.date_versement',$date)
+                ->orderByDesc('versement.date_versement')
+                ->get();
 
-        $total = DB::table('factures')
-            ->join('versement','versement.code_facture','=','factures.code_facture')
-            ->join('clients','clients.id','=','factures.matricule_clients_factures')
-            ->join("information_paiement","information_paiement.code_versement",'=',"versement.code_versement")
-            ->whereBetween('versement.date_versement',$date)
-            ->sum('versement.montant_verser');
+            $total = DB::table('factures')
+                ->join('versement','versement.code_facture','=','factures.code_facture')
+                ->join('clients','clients.id','=','factures.matricule_clients_factures')
+                ->join("information_paiement","information_paiement.code_versement",'=',"versement.code_versement")
+                ->whereBetween('versement.date_versement',$date)
+                ->sum('versement.montant_verser');
+        else:
+            $information = DB::table('sortie_caisse')
+                ->whereBetween('sortie_caisse.date_sortie_caisse',$date)
+                ->orderByDesc('sortie_caisse.date_sortie_caisse')
+                ->get();
+
+            $total = DB::table('sortie_caisse')
+                ->whereBetween('sortie_caisse.date_sortie_caisse',$date)
+                ->sum('sortie_caisse.montant_sortie_caisse');
+        endif;
+
 
         $info = array(
-          "information"=>$information,
-          "total"=>$total
+            "information"=>$information,
+            "total"=>$total
         );
 
         return response()->json($info,201);
 
     }
-    public function imprimerPoint($date1,$date2){
+    public function imprimerPoint($date1,$date2,$type){
 
         $date_debut = $date1;
         $date_fin = $date2;
+        $rapport = (int)$type;
 
         $date = [$date_debut,$date_fin];
 
-        $information = DB::table('factures')
-            ->join('versement','versement.code_facture','=','factures.code_facture')
-            ->join('clients','clients.id','=','factures.matricule_clients_factures')
-            ->join("information_paiement","information_paiement.code_versement",'=',"versement.code_versement")
-            ->whereBetween('versement.date_versement',$date)
-            ->orderByDesc('versement.date_versement')
-            ->get();
+        if ($rapport == 1):
+            $information = DB::table('factures')
+                ->join('versement','versement.code_facture','=','factures.code_facture')
+                ->join('clients','clients.id','=','factures.matricule_clients_factures')
+                ->join("information_paiement","information_paiement.code_versement",'=',"versement.code_versement")
+                ->whereBetween('versement.date_versement',$date)
+                ->orderByDesc('versement.date_versement')
+                ->get();
 
-        $total = DB::table('factures')
-            ->join('versement','versement.code_facture','=','factures.code_facture')
-            ->join('clients','clients.id','=','factures.matricule_clients_factures')
-            ->join("information_paiement","information_paiement.code_versement",'=',"versement.code_versement")
-            ->whereBetween('versement.date_versement',$date)
-            ->sum('versement.montant_verser');
+            $total = DB::table('factures')
+                ->join('versement','versement.code_facture','=','factures.code_facture')
+                ->join('clients','clients.id','=','factures.matricule_clients_factures')
+                ->join("information_paiement","information_paiement.code_versement",'=',"versement.code_versement")
+                ->whereBetween('versement.date_versement',$date)
+                ->sum('versement.montant_verser');
+            if ($date1 == $date2){
+                $title = "ENCAISSEMENT DU ".date("d-m-Y", strtotime($date1));
+            }else{
+                $title = "ENCAISSEMENT DU ".date("d-m-Y", strtotime($date1))." AU ".date("d-m-Y", strtotime($date2));
+            }
+        else:
+            $information = DB::table('sortie_caisse')
+                ->whereBetween('sortie_caisse.date_sortie_caisse',$date)
+                ->orderByDesc('sortie_caisse.date_sortie_caisse')
+                ->get();
+
+            $total = DB::table('sortie_caisse')
+                ->whereBetween('sortie_caisse.date_sortie_caisse',$date)
+                ->sum('sortie_caisse.montant_sortie_caisse');
+            if ($date1 == $date2){
+                $title = "DECAISSEMENT DU ".date("d-m-Y", strtotime($date1));
+            }else{
+                $title = "DECAISSEMENT DU ".date("d-m-Y", strtotime($date1))." AU ".date("d-m-Y", strtotime($date2));
+            }
+        endif;
 
 
-        if ($date1 == $date2){
-            $title = "ENCAISSEMENT DU ".date("d-m-Y", strtotime($date1));
-        }else{
-            $title = "ENCAISSEMENT DU ".date("d-m-Y", strtotime($date1))." AU ".date("d-m-Y", strtotime($date2));
-        }
 
-        return view("encaissement",compact('information','total','title'));
+
+        return view("encaissement",compact('information','total','title','rapport'));
 
     }
 
@@ -152,15 +293,15 @@ class CaisseControllers extends Controller
 
 
         $dataPaiement = array(
-          "code_versement"=>$code,
-          "paiement"=>json_encode(array(
-              "type_paiement"=>$paiement["type_paiement"],
-              "montant"=>$paiement["montant"],
-              "banque"=>$paiement["banque"],
-              "numero_cheque"=>$paiement["numero_cheque"],
-              "numero_telephone"=>$paiement["numero_telephone"],
-              "reseau"=>$paiement["reseau"]
-          ))
+            "code_versement"=>$code,
+            "paiement"=>json_encode(array(
+                "type_paiement"=>$paiement["type_paiement"],
+                "montant"=>$paiement["montant"],
+                "banque"=>$paiement["banque"],
+                "numero_cheque"=>$paiement["numero_cheque"],
+                "numero_telephone"=>$paiement["numero_telephone"],
+                "reseau"=>$paiement["reseau"]
+            ))
         );
 
         DB::table("information_paiement")->insert($dataPaiement);
