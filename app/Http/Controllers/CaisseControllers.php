@@ -156,12 +156,12 @@ class CaisseControllers extends Controller
                 ->join("information_paiement","information_paiement.code_versement",'=',"versement.code_versement");
 
             if ($detail_rapport == 2):
-                $information_debut->where("versement.code_facture",'=',$facture);
-                $total_debut->where("versement.code_facture",'=',$facture);
+                $information_debut->whereIn("versement.code_facture",$facture);
+                $total_debut->whereIn("versement.code_facture",$facture);
             endif;
             if ($detail_rapport == 3):
-                $information_debut->where("clients.id",'=',$client);
-                $total_debut->where("clients.id",'=',$client);
+                $information_debut->whereIn("clients.id",$client);
+                $total_debut->whereIn("clients.id",$client);
             endif;
 
             $information = $information_debut->whereBetween('versement.date_versement',$date)
@@ -197,10 +197,15 @@ class CaisseControllers extends Controller
         $rapport = (int)$type;
         $detail_rapport = (int)$detail_rapport;
 
+        $factureIn = explode(',', $facture);
+        $clientIn = explode(',', $client);
+
+
 
         $date = [$date_debut,$date_fin];
 
         if ($rapport == 1):
+            $add_title = " ";
             $information_debut = DB::table('factures')
                 ->join('versement','versement.code_facture','=','factures.code_facture')
                 ->join('clients','clients.id','=','factures.matricule_clients_factures')
@@ -212,14 +217,14 @@ class CaisseControllers extends Controller
                 ->join("information_paiement","information_paiement.code_versement",'=',"versement.code_versement");
 
             if ($detail_rapport == 2):
-                $information_debut->where("versement.code_facture",'=',$facture);
-                $total_debut->where("versement.code_facture",'=',$facture);
+                $information_debut->whereIn("versement.code_facture",$factureIn);
+                $total_debut->whereIn("versement.code_facture",$factureIn);
+            endif;
+            if ($detail_rapport == 3):
+                $information_debut->whereIn("clients.id",$clientIn);
+                $total_debut->whereIn("clients.id",$clientIn);
             endif;
 
-            if ($detail_rapport == 3):
-                $information_debut->where("clients.id",'=',$client);
-                $total_debut->where("clients.id",'=',$client);
-            endif;
 
             $information = $information_debut->whereBetween('versement.date_versement',$date)
                 ->orderByDesc('versement.date_versement')
