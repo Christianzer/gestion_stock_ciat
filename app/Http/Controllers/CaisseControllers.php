@@ -120,27 +120,55 @@ class CaisseControllers extends Controller
         return response($data,200);
     }
 
+    public function detail_rapport(){
+        $array_clients = [];
+        $clients = DB::table("clients")
+            ->select('*')
+            ->get();
+        foreach ($clients as $client){
+            $nom = $client->nom." ".$client->prenoms;
+            $id = $client->id;
+            array_push($array_clients,array("nom"=>$nom,"id"=>$id));
+        }
+        $factures = DB::table("versement")->select('*')->groupBy("code_facture")->get();
+        return response()->json(array("clients"=>$array_clients,"factures"=>$factures),201);
+    }
     public function recherche(Request $request){
         $date_debut = $request->date_debut;
         $date_fin = $request->date_fin;
         $rapport = (int)$request->type_rapport;
+        $detail_rapport = (int)$request->detail_rapport;
+        $facture = $request->facture;
+        $client = $request->client;
+
 
         $date = [$date_debut,$date_fin];
 
         if ($rapport == 1):
-            $information = DB::table('factures')
+            $information_debut = DB::table('factures')
                 ->join('versement','versement.code_facture','=','factures.code_facture')
                 ->join('clients','clients.id','=','factures.matricule_clients_factures')
-                ->join("information_paiement","information_paiement.code_versement",'=',"versement.code_versement")
-                ->whereBetween('versement.date_versement',$date)
+                ->join("information_paiement","information_paiement.code_versement",'=',"versement.code_versement");
+
+            $total_debut = DB::table('factures')
+                ->join('versement','versement.code_facture','=','factures.code_facture')
+                ->join('clients','clients.id','=','factures.matricule_clients_factures')
+                ->join("information_paiement","information_paiement.code_versement",'=',"versement.code_versement");
+
+            if ($detail_rapport == 2):
+                $information_debut->where("versement.code_facture",'=',$facture);
+                $total_debut->where("versement.code_facture",'=',$facture);
+            endif;
+            if ($detail_rapport == 3):
+                $information_debut->where("clients.id",'=',$client);
+                $total_debut->where("clients.id",'=',$client);
+            endif;
+
+            $information = $information_debut->whereBetween('versement.date_versement',$date)
                 ->orderByDesc('versement.date_versement')
                 ->get();
 
-            $total = DB::table('factures')
-                ->join('versement','versement.code_facture','=','factures.code_facture')
-                ->join('clients','clients.id','=','factures.matricule_clients_factures')
-                ->join("information_paiement","information_paiement.code_versement",'=',"versement.code_versement")
-                ->whereBetween('versement.date_versement',$date)
+            $total = $total_debut->whereBetween('versement.date_versement',$date)
                 ->sum('versement.montant_verser');
         else:
             $information = DB::table('sortie_caisse')
@@ -162,29 +190,44 @@ class CaisseControllers extends Controller
         return response()->json($info,201);
 
     }
-    public function imprimerPoint($date1,$date2,$type){
+    public function imprimerPoint($date1,$date2,$type,$detail_rapport,$facture,$client){
 
         $date_debut = $date1;
         $date_fin = $date2;
         $rapport = (int)$type;
+        $detail_rapport = (int)$detail_rapport;
+
 
         $date = [$date_debut,$date_fin];
 
         if ($rapport == 1):
-            $information = DB::table('factures')
+            $information_debut = DB::table('factures')
                 ->join('versement','versement.code_facture','=','factures.code_facture')
                 ->join('clients','clients.id','=','factures.matricule_clients_factures')
-                ->join("information_paiement","information_paiement.code_versement",'=',"versement.code_versement")
-                ->whereBetween('versement.date_versement',$date)
+                ->join("information_paiement","information_paiement.code_versement",'=',"versement.code_versement");
+
+            $total_debut = DB::table('factures')
+                ->join('versement','versement.code_facture','=','factures.code_facture')
+                ->join('clients','clients.id','=','factures.matricule_clients_factures')
+                ->join("information_paiement","information_paiement.code_versement",'=',"versement.code_versement");
+
+            if ($detail_rapport == 2):
+                $information_debut->where("versement.code_facture",'=',$facture);
+                $total_debut->where("versement.code_facture",'=',$facture);
+            endif;
+
+            if ($detail_rapport == 3):
+                $information_debut->where("clients.id",'=',$client);
+                $total_debut->where("clients.id",'=',$client);
+            endif;
+
+            $information = $information_debut->whereBetween('versement.date_versement',$date)
                 ->orderByDesc('versement.date_versement')
                 ->get();
 
-            $total = DB::table('factures')
-                ->join('versement','versement.code_facture','=','factures.code_facture')
-                ->join('clients','clients.id','=','factures.matricule_clients_factures')
-                ->join("information_paiement","information_paiement.code_versement",'=',"versement.code_versement")
-                ->whereBetween('versement.date_versement',$date)
+            $total = $total_debut->whereBetween('versement.date_versement',$date)
                 ->sum('versement.montant_verser');
+
             if ($date1 == $date2){
                 $title = "ENCAISSEMENT DU ".date("d-m-Y", strtotime($date1));
             }else{
