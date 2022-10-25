@@ -9,6 +9,108 @@ class CaisseControllers extends Controller
 {
     //
 
+    public function entrer_caisse(Request $request){
+
+
+        $code = $request->input('code');
+        $libelle = $request->input('libelle');
+        $date_entre = $request->input('date_entre');
+        $observation = $request->input('observation');
+        $montant =(float)$request->input('montant');
+
+        $data = array(
+
+            'code_entre'=>$code,
+            'libelle_entre_caisse'=>$libelle,
+            'montant_entre_caisse'=>$montant,
+            'date_entre_caisse'=>$date_entre,
+            'observation'=>$observation,
+
+        );
+
+        $clients = DB::table('entre_caisse')->insert($data);
+
+        if ($clients){
+            return response()->json($clients, 201);
+        }
+
+        else{
+            return response()->json( null,400);
+
+        }
+
+    }
+
+    public function upload(Request $request){
+        $uploadedFiles=$request->pics;
+        foreach ($uploadedFiles as $file){
+            $upload_path = public_path('upload');
+            $name=$file->getClientOriginalName();
+            $file->move($upload_path, $name);
+            DB::table('justif_entre')
+                ->insert(array(
+                    'code_entre'=>$request->code
+                ,'justif'=>$name));
+        }
+        return response('success',200);
+
+    }
+
+    public function codege($code){
+        $test = DB::table('entre_caisse')->where('code_entre','=',$code)
+            ->first();
+        if ($test){
+            $data = $this->codeincrementer($test->code_entre);
+            $code = "CIAT-ET".date('Y').$data;
+        }
+        return $code;
+
+    }
+
+    public function generercodeentre(){
+        $dernier = DB::table('entre_caisse')
+            ->orderByDesc('id_entre_caisse')->first();
+        if (isset($dernier)){
+            $data = $this->codeincrementer($dernier->code_entre);
+            $code = "OBF-APP".date('Y').$data;
+        }else{
+            $code = "OBF-APP".date('Y')."N00001";
+        }
+
+        $code = $this->codege($code);
+
+        return response()->json($code, 201);
+
+
+    }
+
+    public function entre_listes(){
+        $listes_paiement = DB::table('entre_caisse')
+            ->leftJoin("justif_entre",'entre_caisse.code_entre','=','justif_entre.code_entre')
+            ->select('entre_caisse.*'
+                ,DB::raw("DATE_FORMAT(entre_caisse.date_entre_caisse, '%d/%m/%Y') as date_entre")
+                ,DB::raw("(GROUP_CONCAT(justif_entre.justif)) as `justif`")
+            )
+            ->orderByDesc('entre_caisse.code_entre')
+            ->groupBy("entre_caisse.code_entre")
+            ->get();
+        $total = DB::table('entre_caisse')->sum('montant_entre_caisse');
+        $data = array("listes"=>$listes_paiement,"total"=>$total);
+        return response($data,200);
+    }
+
+    public function listes_justif($code){
+        $data = DB::table('justif_entre')->where('code_entre','=',$code)->get();
+        return response()->json($data, 201);
+    }
+
+    public function dowload($id){
+        $upload_path = public_path('upload');
+        $element = DB::table('justif_entre')->where('id_justif','=',$id)->first();
+        $ele = $upload_path.'/'.$element->justif;
+        return response()->download($ele,$element->justif);
+    }
+
     public function listes_justif_sortie($code){
         $data = DB::table('justif_sortie')->where('code_sortie','=',$code)->get();
         return response()->json($data, 201);
@@ -85,8 +187,9 @@ class CaisseControllers extends Controller
         $code = $this->codege_sortie($code);
 
         $total_entre = DB::table('versement')->sum('montant_verser');
+        $total_appro = DB::table('entre_caisse')->sum('montant_entre_caisse');
         $total_sortie = DB::table('sortie_caisse')->sum('montant_sortie_caisse');
-        $total = $total_entre - $total_sortie;
+        $total = ($total_entre + $total_appro) - $total_sortie;
         $data = array("code"=>$code,"total"=>$total);
         return response()->json($data, 201);
 
@@ -116,7 +219,8 @@ class CaisseControllers extends Controller
             ->get();
         $total = DB::table('sortie_caisse')->sum('montant_sortie_caisse');
         $total_entre = DB::table('versement')->sum('montant_verser');
-        $data = array("listes"=>$listes_paiement,"total"=>$total,"encaisse"=>$total_entre);
+        $total_appro = DB::table('entre_caisse')->sum('montant_entre_caisse');
+        $data = array("listes"=>$listes_paiement,"total"=>$total,"encaisse"=>$total_entre,"appro"=>$total_appro);
         return response($data,200);
     }
 

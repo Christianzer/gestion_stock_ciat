@@ -236,8 +236,9 @@ class ApiClientsControllers extends Controller
             ->leftJoin('ventes','produits.code_produit','=','ventes.code_produit')
             ->groupByRaw('produits.code_produit,produits.libelle_produit,catalogue_produits.quantite_produit,catalogue_produits.prix_produit')->get();
 
-        $ventes_realiser = DB::table('factures')->select(DB::raw('sum(montant_total_factures) as montant_total'))->first();
-        $ventes_realiser_ttc = DB::table('factures')->select(DB::raw('sum(montant_total_factures_ttc) as montant_total'))->first();
+        $ventes_realiser_ttc = DB::table('versement')->select(DB::raw('sum(montant_verser) as montant_total'))->first();
+        $ventes_realiser = DB::table('versement')->select(DB::raw('sum(montant_verser)/1.18 as montant_total'))->first();
+
 
         $ventes_a_realiser = 0;
         $ventes_a_realiser_ttc = 0;
@@ -279,8 +280,8 @@ class ApiClientsControllers extends Controller
             ->limit(3)
             ->get();
 
-        $decaissement = DB::table('sortie_caisse')
-            ->sum('sortie_caisse.montant_sortie_caisse');
+        $decaissement = DB::table('sortie_caisse')->sum('sortie_caisse.montant_sortie_caisse');
+        $appro = DB::table('entre_caisse')->sum('entre_caisse.montant_entre_caisse');
 
         return response()->json(array(
             'clients'=>$clients,
@@ -292,7 +293,8 @@ class ApiClientsControllers extends Controller
             'ventes_a_realiser_ttc' =>$ventes_a_realiser_ttc,
             'top_five_clients'=>$top_five_clients,
             'top_fives_produits'=>$top_fives_produits,
-            'decaissement'=>$decaissement
+            'decaissement'=>$decaissement,
+            'appro'=>$appro
         ), 201);
 
     }

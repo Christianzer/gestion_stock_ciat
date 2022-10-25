@@ -91,7 +91,9 @@ Route::get('imprimer/point/{date1}/{date2}/{type}/{detail_rapport}/{facture}/{cl
 
 
 Route::get('detail_rapport',[CaisseControllers::class,'detail_rapport']);
-
-
-
-
+Route::get('dowload/{id}',[CaisseControllers::class,'dowload']);
+Route::get('listes_entre',[CaisseControllers::class,'entre_listes']);
+Route::get('listes_justif/{code}',[CaisseControllers::class,'listes_justif']);
+Route::get("code",[CaisseControllers::class,'generercodeentre']);
+Route::post('upload', [CaisseControllers::class,'upload']);
+Route::post('entre/facture',[CaisseControllers::class,'entrer_caisse']);
