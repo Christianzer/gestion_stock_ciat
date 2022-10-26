@@ -407,7 +407,7 @@ class CaisseControllers extends Controller
         $monnaie = DB::table("monnaie")
             ->where('code_versement','=',$code)
             ->where('client','=',$information->matricule_clients_factures)
-            ->where('statut','=',1)
+            ->where('statut','!=',3)
             ->sum("monnaie");
 
 
@@ -452,15 +452,35 @@ class CaisseControllers extends Controller
             ->get();
         */
 
+
+        $info = array();
+
         $listes = DB::table("factures")
             ->join('clients','clients.id','=','factures.matricule_clients_factures')
             ->leftJoin('versement','versement.code_facture','=','factures.code_facture')
-            ->leftJoin('monnaie','monnaie.code_versement','=','versement.code_versement')
             ->select(DB::raw('SUM(versement.montant_verser) as verser'),'factures.*','clients.*')
             ->havingRaw('factures.montant_total_factures_ttc > COALESCE(verser, 0 )')
             ->groupBy('factures.code_facture')
             ->get();
-        return response()->json($listes,201);
+        foreach ($listes as $liste){
+
+            $monnaie = DB::table("monnaie")
+                ->where("client",'=',$liste->matricule_clients_factures)
+                ->where("statut",'=',1)
+                ->sum("monnaie");
+            $data = array(
+                "client_id"=>$liste->matricule_clients_factures,
+                "code_facture"=>$liste->code_facture,
+                "matricule_clients"=>$liste->nom." ".$liste->prenoms,
+                "montant_total_factures_ttc"=>$liste->montant_total_factures_ttc,
+                "verser"=>$liste->verser,
+                "monnaie"=>$monnaie,
+            );
+
+            array_push($info,$data);
+        }
+
+        return response()->json($info,201);
     }
 
     public function faire_versement(Request $request){
@@ -492,6 +512,17 @@ class CaisseControllers extends Controller
                 $client = DB::table("factures")->where('code_facture','=',$request->code_facture)->first();
                 DB::table("monnaie")->insert(array("statut"=>1,"client"=>$client->matricule_clients_factures,"monnaie"=>$request->monnaie,"code_versement"=>$code));
             }
+        }
+
+
+        if ($type == 5){
+            DB::table("monnaie")
+                ->where("client",'=',$request->client_id)
+                ->where("statut",'=',1)
+                ->update(array(
+                    "statut"=>3,
+                    "code_facture"=>$request->code_facture
+                ));
         }
 
         if ($type == 1){
@@ -551,6 +582,14 @@ class CaisseControllers extends Controller
 
 
 
+        $monnaie = DB::table("monnaie")
+            ->where('code_versement','=',$code_recu)
+            ->where('client','=',$information->matricule_clients_factures)
+            ->where('statut','!=',3)
+            ->sum("monnaie");
+
+
+
 
         $paiement = json_decode($information->paiement);
 
@@ -566,6 +605,7 @@ class CaisseControllers extends Controller
             "reste_payer"=>(double)((double)$information->montant_total_factures_ttc -(double)$listes),
             "paiement"=>$paiement,
             "type_paiement"=>$information->type_paiement,
+            "monnaie"=>$monnaie,
             "a_payer"=>(double)$information->montant_verser+((double)$information->montant_total_factures_ttc -(double)$listes),
         );
 

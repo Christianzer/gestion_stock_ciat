@@ -165,6 +165,28 @@
                 <td class="text-uppercase font-weight-bold text-dark text-left">{{$info['factures']}}</td>
             </tr>
         @endif
+
+        @if($info['type_paiement'] == 1)
+            <tr class="heading">
+                <td class="text-uppercase font-weight-bold text-danger text-left" style="width: 20%">MOYEN DE PAIEMENT</td>
+                <td class="text-uppercase font-weight-bold text-danger text-left" style="width: 1%">:</td>
+                <td class="text-uppercase font-weight-bold text-dark text-left">ESPèce</td>
+            </tr>
+        @endif
+        @if($info['type_paiement'] == 2)
+            <tr class="heading">
+                <td class="text-uppercase font-weight-bold text-danger text-left" style="width: 20%">MOYEN DE PAIEMENT</td>
+                <td class="text-uppercase font-weight-bold text-danger text-left" style="width: 1%">:</td>
+                <td class="text-uppercase font-weight-bold text-dark text-left">Chèque</td>
+            </tr>
+        @endif
+        @if($info['type_paiement'] == 3)
+            <tr class="heading">
+                <td class="text-uppercase font-weight-bold text-danger text-left" style="width: 20%">MOYEN DE PAIEMENT</td>
+                <td class="text-uppercase font-weight-bold text-danger text-left" style="width: 1%">:</td>
+                <td class="text-uppercase font-weight-bold text-dark text-left">mobile monney</td>
+            </tr>
+        @endif
         @if(isset($info['a_payer']))
             <tr class="heading">
                 <td class="text-uppercase font-weight-bold text-danger text-left" style="width: 20%">à PAYER</td>
@@ -186,26 +208,11 @@
                 <td class="text-uppercase font-weight-bold text-dark text-left">{{number_format($info['reste_payer'],"0",","," ")}} FCFA</td>
             </tr>
         @endif
-
-        @if($info['type_paiement'] == 1)
+        @if(!is_null($info['monnaie']))
             <tr class="heading">
-                <td class="text-uppercase font-weight-bold text-danger text-left" style="width: 20%">MOYEN DE PAIEMENT</td>
+                <td class="text-uppercase font-weight-bold text-danger text-left" style="width: 20%">MONNAIE </td>
                 <td class="text-uppercase font-weight-bold text-danger text-left" style="width: 1%">:</td>
-                <td class="text-uppercase font-weight-bold text-dark text-left">ESPèce</td>
-            </tr>
-        @endif
-        @if($info['type_paiement'] == 2)
-            <tr class="heading">
-                <td class="text-uppercase font-weight-bold text-danger text-left" style="width: 20%">MOYEN DE PAIEMENT</td>
-                <td class="text-uppercase font-weight-bold text-danger text-left" style="width: 1%">:</td>
-                <td class="text-uppercase font-weight-bold text-dark text-left">Chèque</td>
-            </tr>
-        @endif
-        @if($info['type_paiement'] == 3)
-            <tr class="heading">
-                <td class="text-uppercase font-weight-bold text-danger text-left" style="width: 20%">MOYEN DE PAIEMENT</td>
-                <td class="text-uppercase font-weight-bold text-danger text-left" style="width: 1%">:</td>
-                <td class="text-uppercase font-weight-bold text-dark text-left">mobile monney</td>
+                <td class="text-uppercase font-weight-bold text-dark text-left">{{$info['monnaie']}}</td>
             </tr>
         @endif
         @if(!is_null($info['paiement']->banque))

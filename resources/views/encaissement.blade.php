@@ -43,6 +43,8 @@ function formatage($valeur) {
                             Chèque
                         @elseif($produits->type_paiement == 3)
                             Mobile Monney
+                        @elseif($produits->type_paiement == 4)
+                            Monnaie client
                         @endif
                     </td>
                     <td class="text-right">{{formatage($produits->montant_verser)}}</td>
