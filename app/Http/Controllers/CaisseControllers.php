@@ -274,7 +274,18 @@ class CaisseControllers extends Controller
 
             $total = $total_debut->whereBetween('versement.date_versement',$date)
                 ->sum('versement.montant_verser');
-        else:
+        elseif ($rapport == 3):
+
+            $information = DB::table('entre_caisse')
+                ->whereBetween('entre_caisse.date_entre_caisse',$date)
+                ->orderByDesc('entre_caisse.date_entre_caisse')
+                ->get();
+
+            $total = DB::table('entre_caisse')
+                ->whereBetween('entre_caisse.date_entre_caisse',$date)
+                ->sum('entre_caisse.montant_entre_caisse');
+
+        elseif ($rapport == 2):
             $information = DB::table('sortie_caisse')
                 ->whereBetween('sortie_caisse.date_sortie_caisse',$date)
                 ->orderByDesc('sortie_caisse.date_sortie_caisse')
@@ -342,7 +353,27 @@ class CaisseControllers extends Controller
             }else{
                 $title = "ENCAISSEMENT DU ".date("d-m-Y", strtotime($date1))." AU ".date("d-m-Y", strtotime($date2));
             }
-        else:
+        elseif ($rapport == 3):
+
+            $information = DB::table('entre_caisse')
+                ->whereBetween('entre_caisse.date_entre_caisse',$date)
+                ->orderByDesc('entre_caisse.date_entre_caisse')
+                ->get();
+
+            $total = DB::table('entre_caisse')
+                ->whereBetween('entre_caisse.date_entre_caisse',$date)
+                ->sum('entre_caisse.montant_entre_caisse');
+
+
+            if ($date1 == $date2){
+                $title = "APPROVISIONNEMENT DU ".date("d-m-Y", strtotime($date1));
+            }else{
+                $title = "APPROVISIONNEMENT DU ".date("d-m-Y", strtotime($date1))." AU ".date("d-m-Y", strtotime($date2));
+            }
+
+
+
+        elseif ($rapport == 2):
             $information = DB::table('sortie_caisse')
                 ->whereBetween('sortie_caisse.date_sortie_caisse',$date)
                 ->orderByDesc('sortie_caisse.date_sortie_caisse')
@@ -359,13 +390,12 @@ class CaisseControllers extends Controller
         endif;
 
 
-
-
         return view("encaissement",compact('information','total','title','rapport'));
 
     }
 
     public function information($code){
+
         $information = DB::table('factures')
             ->join('versement','versement.code_facture','=','factures.code_facture')
             ->join('clients','clients.id','=','factures.matricule_clients_factures')
@@ -373,6 +403,12 @@ class CaisseControllers extends Controller
             ->join("information_paiement","information_paiement.code_versement",'=',"versement.code_versement")
             ->where('versement.code_versement','=',$code)
             ->first();
+
+        $monnaie = DB::table("monnaie")
+            ->where('code_versement','=',$code)
+            ->where('client','=',$information->matricule_clients_factures)
+            ->where('statut','=',1)
+            ->sum("monnaie");
 
 
         $listes = DB::table('factures')
@@ -398,6 +434,7 @@ class CaisseControllers extends Controller
             "reste_payer"=>(double)((double)$information->montant_total_factures_ttc -(double)$listes),
             "paiement"=>$paiement,
             "type_paiement"=>$information->type_paiement,
+            "monnaie"=>$monnaie,
             "a_payer"=>(double)$information->montant_verser+((double)$information->montant_total_factures_ttc -(double)$listes),
         );
 
@@ -418,6 +455,7 @@ class CaisseControllers extends Controller
         $listes = DB::table("factures")
             ->join('clients','clients.id','=','factures.matricule_clients_factures')
             ->leftJoin('versement','versement.code_facture','=','factures.code_facture')
+            ->leftJoin('monnaie','monnaie.code_versement','=','versement.code_versement')
             ->select(DB::raw('SUM(versement.montant_verser) as verser'),'factures.*','clients.*')
             ->havingRaw('factures.montant_total_factures_ttc > COALESCE(verser, 0 )')
             ->groupBy('factures.code_facture')
@@ -428,13 +466,18 @@ class CaisseControllers extends Controller
     public function faire_versement(Request $request){
 
         $paiement = $request->paiement;
+        $type = (int)$request->type;
+        $montant_payer = $request->montant_verser - $request->monnaie;
 
         $data = array(
-            "montant_verser"=>$request->montant_verser,
+            "montant_verser"=>$montant_payer,
             "code_facture"=>$request->code_facture,
             "date_versement"=>$request->date_versement,
             "type_paiement"=>$request->type_paiment,
         );
+
+
+
 
         $id_insert = DB::table("versement")->insertGetId($data);
 
@@ -443,6 +486,20 @@ class CaisseControllers extends Controller
 
         DB::table("versement")->where('id_versement','=',$id_insert)->update(array("code_versement"=>$code));
 
+
+        if ($type == 2){
+            if ($request->monnaie > 0){
+                $client = DB::table("factures")->where('code_facture','=',$request->code_facture)->first();
+                DB::table("monnaie")->insert(array("statut"=>1,"client"=>$client->matricule_clients_factures,"monnaie"=>$request->monnaie,"code_versement"=>$code));
+            }
+        }
+
+        if ($type == 1){
+            if ($request->monnaie > 0){
+                $client = DB::table("factures")->where('code_facture','=',$request->code_facture)->first();
+                DB::table("monnaie")->insert(array("statut"=>2,"client"=>$client->matricule_clients_factures,"monnaie"=>$request->monnaie,"code_versement"=>$code));
+            }
+        }
 
         $dataPaiement = array(
             "code_versement"=>$code,

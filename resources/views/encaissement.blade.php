@@ -58,7 +58,36 @@ function formatage($valeur) {
 
 
         </table>
-    @else
+    @elseif($rapport == 3)
+        <table class="table table-bordered" style="font-size: 12px;">
+            <thead>
+            <tr class="text-left">
+                <th>Date Approvisionnement</th>
+                <th>Code Approvisionnement</th>
+                <th>Libelle Approvisionnement</th>
+                <th>Montant Approvisionnement FCFA</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach($information as $produits)
+                <tr>
+                    <td class="text-left">{{date("d-m-Y", strtotime($produits->date_entre_caisse))}}</td>
+                    <td class="text-left">{{$produits->code_entre}}</td>
+                    <td class="text-left">{{$produits->libelle_entre_caisse}}</td>
+                    <td class="text-right">{{formatage($produits->montant_entre_caisse)}}</td>
+                </tr>
+            @endforeach
+            </tbody>
+            <tfoot>
+            <tr>
+                <th class="text-uppercase text-right" colspan="3">Total FCFA</th>
+                <td class="text-right">{{formatage($total)}}</td>
+            </tr>
+            </tfoot>
+
+
+        </table>
+    @elseif($rapport == 2)
         <table class="table table-bordered" style="font-size: 12px;">
             <thead>
             <tr class="text-left">
