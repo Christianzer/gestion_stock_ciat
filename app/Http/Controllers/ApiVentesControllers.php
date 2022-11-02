@@ -91,7 +91,7 @@ class ApiVentesControllers extends Controller
             'montant_total_ttc'=>(float)$request->montant_total_ttc,
             'matricule_clients'=>(int)$request->clients,
             'statut_livraison'=>2,
-            'statut_prod' =>2,
+            'statut_prod' =>1,
             'code_facture'=>$code_facture,
             'date_commande'=>$request->date_commande,
             'date_commande_update'=>$request->update_data
@@ -280,8 +280,23 @@ clients.nom,clients.prenoms,sum(versement.montant_verser) as verser,bon_commande
 
     public function ventes(Request $request){
 
+
+        $code_commande = $request->code_commande;
+
+        $existFacture = DB::table('bon_commande')->
+            where('bon_commande.code_commande','=',$code_commande)->first();
+
+        if (!is_null($existFacture->code_facture)){
+            DB::table('factures')->where('code_facture','=',$existFacture->code_facture)->delete();
+            DB::table('ventes')->where('code_facture','=',$existFacture->code_facture)->delete();
+        }
+
         $produits = $request->produits;
         $code_facture = $this->genererCodeFacture();
+
+
+
+
         foreach ($produits as $prod){
             $prix = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_vente']);
             $prix_vente_ttc = floor((float)$prod['prix_vente'] * 1.18);
@@ -296,6 +311,7 @@ clients.nom,clients.prenoms,sum(versement.montant_verser) as verser,bon_commande
                 'total_payer_ttc'=>$prix_ttc
             ));
         }
+
         DB::table('factures')->insert(array(
             'code_facture'=>$code_facture,
             'montant_total_factures'=>(float)$request->montant_total,
@@ -308,7 +324,59 @@ clients.nom,clients.prenoms,sum(versement.montant_verser) as verser,bon_commande
 
 
         DB::table('bon_commande')->where('code_commande','=',$request->code_commande)->update(array(
-            'statut_prod' =>2,'code_facture'=>$code_facture,"statut_livraison"=>2
+            'statut_prod' =>1,'code_facture'=>$code_facture,"statut_livraison"=>2
+        ));
+
+
+        return response()->json($code_facture, 201);
+    }
+    public function ventesDirecte(Request $request){
+
+
+        $code_commande = $request->code_commande;
+
+        $existFacture = DB::table('bon_commande')->
+            where('bon_commande.code_commande','=',$code_commande)->first();
+
+        if (!is_null($existFacture->code_facture)){
+            DB::table('factures')->where('code_facture','=',$existFacture->code_facture)->delete();
+            DB::table('ventes')->where('code_facture','=',$existFacture->code_facture)->delete();
+        }
+
+        $produits = $request->produits;
+        $code_facture = $this->genererCodeFacture();
+
+
+
+
+        foreach ($produits as $prod){
+            $prix = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_vente']);
+            $prix_vente_ttc = floor((float)$prod['prix_vente'] * 1.18);
+            $prix_ttc = (float)((int)$prod['quantite_acheter'] * $prix_vente_ttc);
+            DB::table('ventes')->insert(array(
+                'code_produit'=>$prod['code_produit'],
+                'quantite_acheter'=>$prod['quantite_acheter'],
+                'prix_vente'=>(float)$prod['prix_vente'],
+                'prix_ventes_ttc'=>$prix_vente_ttc,
+                'code_facture'=>$code_facture,
+                'total_payer'=>$prix,
+                'total_payer_ttc'=>$prix_ttc
+            ));
+        }
+
+        DB::table('factures')->insert(array(
+            'code_facture'=>$code_facture,
+            'montant_total_factures'=>(float)$request->montant_total,
+            'montant_total_factures_ttc'=>(float)$request->montant_total_ttc,
+            'matricule_clients_factures'=>(int)$request->clients,
+            'date_facture'=>$request->date_facture,
+            'date_facture_update'=>$request->date_facture_update
+        ));
+
+
+
+        DB::table('bon_commande')->where('code_commande','=',$request->code_commande)->update(array(
+            'statut_prod' =>1,'code_facture'=>$code_facture,"statut_livraison"=>2
         ));
 
 
