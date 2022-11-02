@@ -11,31 +11,68 @@ class CaisseControllers extends Controller
 
     public function entrer_caisse(Request $request){
 
+        $type = (int)$request->input('type');
 
-        $code = $request->input('code');
-        $libelle = $request->input('libelle');
-        $date_entre = $request->input('date_entre');
-        $observation = $request->input('observation');
-        $montant =(float)$request->input('montant');
+        if ($type == 1){
 
-        $data = array(
+            $code = $request->input('code');
+            $libelle = $request->input('libelle');
+            $date_entre = $request->input('date_entre');
+            $observation = $request->input('observation');
+            $montant =(float)$request->input('montant');
 
-            'code_entre'=>$code,
-            'libelle_entre_caisse'=>$libelle,
-            'montant_entre_caisse'=>$montant,
-            'date_entre_caisse'=>$date_entre,
-            'observation'=>$observation,
+            $data = array(
 
-        );
+                'code_entre'=>$code,
+                'libelle_entre_caisse'=>$libelle,
+                'montant_entre_caisse'=>$montant,
+                'date_entre_caisse'=>$date_entre,
+                'observation'=>$observation,
 
-        $clients = DB::table('entre_caisse')->insert($data);
+            );
 
-        if ($clients){
-            return response()->json($clients, 201);
-        }
+            $clients = DB::table('entre_caisse')->insert($data);
 
-        else{
-            return response()->json( null,400);
+            if ($clients){
+                return response()->json($clients, 201);
+            }
+
+            else{
+                return response()->json( null,400);
+
+            }
+
+        }elseif ($type == 2){
+
+            $code = $request->input('code');
+            $libelle = $request->input('libelle');
+            $date_entre = $request->input('date_entre');
+            $observation = $request->input('observation');
+            $montant =(float)$request->input('montant');
+
+            $data = array(
+
+                'code_entre'=>$code,
+                'libelle_entre_caisse'=>$libelle,
+                'montant_entre_caisse'=>$montant,
+                'date_entre_caisse'=>$date_entre,
+                'observation'=>$observation,
+
+            );
+
+            $clients = DB::table('entre_caisse')
+                ->where("code_entre","=",$code)
+                ->update($data)
+            ;
+
+            if ($clients){
+                return response()->json($clients, 201);
+            }
+
+            else{
+                return response()->json( null,400);
+
+            }
 
         }
 
@@ -140,32 +177,69 @@ class CaisseControllers extends Controller
     public function sortirCaisse(Request $request){
 
 
-        $code = $request->input('code');
-        $libelle = $request->input('libelle');
-        $date_entre = $request->input('date_entre');
-        $observation = $request->input('observation');
-        $montant =(float)$request->input('montant');
 
-        $data = array(
+        $type = (int)$request->input('type');
 
-            'code_sortie'=>$code,
-            'libelle_sortie_caisse'=>$libelle,
-            'montant_sortie_caisse'=>$montant,
-            'date_sortie_caisse'=>$date_entre,
-            'observation'=>$observation,
+        if ($type == 1){
+            $code = $request->input('code');
+            $libelle = $request->input('libelle');
+            $date_entre = $request->input('date_entre');
+            $observation = $request->input('observation');
+            $montant =(float)$request->input('montant');
 
-        );
+            $data = array(
 
-        $clients = DB::table('sortie_caisse')->insert($data);
+                'code_sortie'=>$code,
+                'libelle_sortie_caisse'=>$libelle,
+                'montant_sortie_caisse'=>$montant,
+                'date_sortie_caisse'=>$date_entre,
+                'observation'=>$observation,
 
-        if ($clients){
-            return response()->json($clients, 201);
+            );
+
+            $clients = DB::table('sortie_caisse')->insert($data);
+
+            if ($clients){
+                return response()->json($clients, 201);
+            }
+
+            else{
+                return response()->json( null,400);
+
+            }
+
+        }elseif ($type == 2){
+            $code = $request->input('code');
+            $libelle = $request->input('libelle');
+            $date_entre = $request->input('date_entre');
+            $observation = $request->input('observation');
+            $montant =(float)$request->input('montant');
+
+            $data = array(
+
+                'code_sortie'=>$code,
+                'libelle_sortie_caisse'=>$libelle,
+                'montant_sortie_caisse'=>$montant,
+                'date_sortie_caisse'=>$date_entre,
+                'observation'=>$observation,
+
+            );
+
+            $clients = DB::table('sortie_caisse')
+                ->where("code_sortie",'=',$code)
+                ->update($data);
+
+            if ($clients){
+                return response()->json($clients, 201);
+            }
+
+            else{
+                return response()->json( null,400);
+
+            }
+
         }
 
-        else{
-            return response()->json( null,400);
-
-        }
 
     }
 

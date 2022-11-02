@@ -209,7 +209,7 @@ class ApiVentesControllers extends Controller
     public function listes_commandes(){
         $commandes = DB::table('bon_commande')
             ->selectRaw('versement.code_facture,bon_commande.code_commande,
-clients.nom,clients.prenoms,
+clients.nom,clients.prenoms,bon_commande.id_bon_commande,
 bon_commande.date_commande,bon_commande.statut_livraison,
 bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.montant_total,bon_commande.montant_total_ttc')
             ->join('clients','clients.id','bon_commande.matricule_clients')
@@ -217,6 +217,7 @@ bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.mo
             ->leftJoin('versement','factures.code_facture','=','versement.code_facture')
             ->groupByRaw('versement.code_facture,bon_commande.statut_livraison,bon_commande.date_commande,bon_commande.date_commande_update,bon_commande.code_commande,clients.nom,clients.prenoms,bon_commande.statut_prod,bon_commande.montant_total,bon_commande.montant_total_ttc')
             ->havingRaw('bon_commande.montant_total_ttc > COALESCE(verser, 0 )')
+            ->orderByDesc('bon_commande.id_bon_commande')
             ->get();
 
         return response($commandes,201);
