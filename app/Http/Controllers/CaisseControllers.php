@@ -515,6 +515,14 @@ class CaisseControllers extends Controller
         return response()->json($info,201);
     }
 
+
+    public function inforRecu(){
+        $listes =  DB::table("versement")
+            ->orderByDesc('id_versement')
+            ->get();
+        return response()->json($listes,201);
+    }
+
     public function listes(){
         /*
         $listes = DB::table('factures')

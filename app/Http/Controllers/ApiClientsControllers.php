@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Ifsnop\Mysqldump as IMysqldump;
 
 
 class ApiClientsControllers extends Controller
@@ -85,8 +86,24 @@ class ApiClientsControllers extends Controller
     }
 
     public function db_save(){
-
+        $date_jour = date("Y-m-d");
+        $username = env('DB_USERNAME');
+        $mdp = env('DB_PASSWORD');
+        $host = env('DB_HOST');
+        $database = env('DB_DATABASE');
+        $filenames = "\save_bd_".$date_jour.".sql";
+        $filename = storage_path() . "\app\backup" . $filenames;
+        try {
+            $dump = new IMysqldump\Mysqldump('mysql:host='.$host.';dbname='.$database.'', $username, $mdp);
+            $dump->start($filename);
+            DB::table('sauvegarde_bd')->insert(array(
+                'date_sauvegarde'=>$date_jour
+            ));
+        } catch (\Exception $e) {
+            echo 'mysqldump-php error: ' . $e->getMessage();
+        }
     }
+
 
 
     public function deleteClient ($id) {

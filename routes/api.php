@@ -79,6 +79,8 @@ Route::get('information/{code}',[CaisseControllers::class,'information']);
 Route::get('imprimer_recu/{code}',[CaisseControllers::class,'imprimer_recu']);
 
 
+Route::get("ancien",[CaisseControllers::class,'inforRecu']);
+
 Route::get('listes_sortie',[CaisseControllers::class,'sortie_listes']);
 Route::get("code_sortie",[CaisseControllers::class,'generercodeentre_sortie']);
 Route::post('facture_sortie',[CaisseControllers::class,'sortirCaisse']);
