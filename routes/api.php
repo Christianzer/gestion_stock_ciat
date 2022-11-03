@@ -88,7 +88,7 @@ Route::post('upload_sortie', [CaisseControllers::class,'upload_sortie']);
 Route::get('dowload_sortie/{id}',[CaisseControllers::class,'dowload_sortie']);
 Route::get('listes_justif_sortie/{code}',[CaisseControllers::class,'listes_justif_sortie']);
 Route::post('recherche',[CaisseControllers::class,'recherche']);
-Route::get('imprimer/point/{date1}/{date2}/{type}/{detail_rapport}/{facture}/{client}',[CaisseControllers::class,'imprimerPoint']);
+Route::get('imprimer/point/{date1}/{date2}/{type}/{detail_rapport}/{facture}/{client}/{type_paiement}',[CaisseControllers::class,'imprimerPoint']);
 
 
 

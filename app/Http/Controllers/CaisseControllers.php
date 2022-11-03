@@ -65,14 +65,7 @@ class CaisseControllers extends Controller
                 ->update($data)
             ;
 
-            if ($clients){
-                return response()->json($clients, 201);
-            }
-
-            else{
-                return response()->json( null,400);
-
-            }
+            return response()->json($clients, 201);
 
         }
 
@@ -80,14 +73,29 @@ class CaisseControllers extends Controller
 
     public function upload(Request $request){
         $uploadedFiles=$request->pics;
+        $update=(int)$request->update;
         foreach ($uploadedFiles as $file){
             $upload_path = public_path('upload');
             $name=$file->getClientOriginalName();
             $file->move($upload_path, $name);
-            DB::table('justif_entre')
-                ->insert(array(
-                    'code_entre'=>$request->code
-                ,'justif'=>$name));
+
+            if ($update == 2){
+                DB::table('justif_entre')
+                    ->where("code_entre",'=',$request->code)
+                    ->delete();
+                DB::table('justif_entre')
+                    ->insert(array(
+                        'code_entre'=>$request->code
+                    ,'justif'=>$name));
+            }else{
+                DB::table('justif_entre')
+                    ->insert(array(
+                        'code_entre'=>$request->code
+                    ,'justif'=>$name));
+            }
+
+
+
         }
         return response('success',200);
 
@@ -162,14 +170,25 @@ class CaisseControllers extends Controller
 
     public function upload_sortie(Request $request){
         $uploadedFiles=$request->pics;
+        $update=(int)$request->update;
         foreach ($uploadedFiles as $file){
             $upload_path = public_path('upload');
             $name=$file->getClientOriginalName();
             $file->move($upload_path, $name);
-            DB::table('justif_sortie')
-                ->insert(array(
-                    'code_sortie'=>$request->code
-                ,'justif'=>$name));
+            if ($update == 2){
+                DB::table('justif_sortie')
+                    ->where("code_sortie",'=',$request->code)
+                    ->delete();
+                DB::table('justif_sortie')
+                    ->insert(array(
+                        'code_sortie'=>$request->code
+                    ,'justif'=>$name));
+            }else{
+                DB::table('justif_sortie')
+                    ->insert(array(
+                        'code_sortie'=>$request->code
+                    ,'justif'=>$name));
+            }
         }
         return response('success',200);
 
@@ -229,14 +248,7 @@ class CaisseControllers extends Controller
                 ->where("code_sortie",'=',$code)
                 ->update($data);
 
-            if ($clients){
-                return response()->json($clients, 201);
-            }
-
-            else{
-                return response()->json( null,400);
-
-            }
+            return response()->json($clients, 201);
 
         }
 
@@ -318,6 +330,7 @@ class CaisseControllers extends Controller
         $detail_rapport = (int)$request->detail_rapport;
         $facture = $request->facture;
         $client = $request->client;
+        $type_paiement = (int)$request->type_paiement;
 
 
         $date = [$date_debut,$date_fin];
@@ -341,6 +354,23 @@ class CaisseControllers extends Controller
                 $information_debut->whereIn("clients.id",$client);
                 $total_debut->whereIn("clients.id",$client);
             endif;
+
+            if ($type_paiement == 2){
+                $information_debut->where("versement.type_paiement",'=',1);
+                $total_debut->where("versement.type_paiement",'=',1);
+            }
+
+            if ($type_paiement == 3){
+                $information_debut->where("versement.type_paiement",'=',2);
+                $total_debut->where("versement.type_paiement",'=',2);
+            }
+
+            if ($type_paiement == 4){
+                $information_debut->where("versement.type_paiement",'=',3);
+                $total_debut->where("versement.type_paiement",'=',3);
+            }
+
+
 
             $information = $information_debut->whereBetween('versement.date_versement',$date)
                 ->orderByDesc('versement.date_versement')
@@ -379,12 +409,15 @@ class CaisseControllers extends Controller
         return response()->json($info,201);
 
     }
-    public function imprimerPoint($date1,$date2,$type,$detail_rapport,$facture,$client){
+    public function imprimerPoint($date1,$date2,$type,$detail_rapport,$facture,$client,$type_paiement){
 
         $date_debut = $date1;
         $date_fin = $date2;
         $rapport = (int)$type;
         $detail_rapport = (int)$detail_rapport;
+        $type_paiement = (int)$type_paiement;
+
+        $titre_paiement = "";
 
         $factureIn = explode(',', $facture);
         $clientIn = explode(',', $client);
@@ -414,6 +447,23 @@ class CaisseControllers extends Controller
                 $total_debut->whereIn("clients.id",$clientIn);
             endif;
 
+            if ($type_paiement == 2){
+                $titre_paiement = " MODE DE PAIEMENT : ESPECES ";
+                $information_debut->where("versement.type_paiement",'=',1);
+                $total_debut->where("versement.type_paiement",'=',1);
+            }
+
+            if ($type_paiement == 3){
+                $titre_paiement = " MODE DE PAIEMENT : CHEQUES ";
+                $information_debut->where("versement.type_paiement",'=',2);
+                $total_debut->where("versement.type_paiement",'=',2);
+            }
+
+            if ($type_paiement == 4){
+                $titre_paiement = " MODE DE PAIEMENT : MOBILE MONNEY ";
+                $information_debut->where("versement.type_paiement",'=',3);
+                $total_debut->where("versement.type_paiement",'=',3);
+            }
 
             $information = $information_debut->whereBetween('versement.date_versement',$date)
                 ->orderByDesc('versement.date_versement')
@@ -463,6 +513,7 @@ class CaisseControllers extends Controller
             }
         endif;
 
+            $title = $title.$titre_paiement;
 
         return view("encaissement",compact('information','total','title','rapport'));
 
