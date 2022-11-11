@@ -91,7 +91,7 @@ class ApiVentesControllers extends Controller
             'montant_total_ttc'=>(float)$request->montant_total_ttc,
             'matricule_clients'=>(int)$request->clients,
             'statut_livraison'=>2,
-            'statut_prod' =>1,
+            'statut_prod' =>2,
             'code_facture'=>$code_facture,
             'date_commande'=>$request->date_commande,
             'date_commande_update'=>$request->update_data
@@ -216,7 +216,7 @@ bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.mo
             ->leftJoin('factures','factures.code_facture','=','bon_commande.code_facture')
             ->leftJoin('versement','factures.code_facture','=','versement.code_facture')
             ->groupByRaw('versement.code_facture,bon_commande.statut_livraison,bon_commande.date_commande,bon_commande.date_commande_update,bon_commande.code_commande,clients.nom,clients.prenoms,bon_commande.statut_prod,bon_commande.montant_total,bon_commande.montant_total_ttc')
-            ->havingRaw('bon_commande.montant_total_ttc > COALESCE(verser, 0 )')
+            ->where('bon_commande.encaisser','=',1)
             ->orderByDesc('bon_commande.id_bon_commande')
             ->get();
 
@@ -324,7 +324,7 @@ clients.nom,clients.prenoms,sum(versement.montant_verser) as verser,bon_commande
 
 
         DB::table('bon_commande')->where('code_commande','=',$request->code_commande)->update(array(
-            'statut_prod' =>1,'code_facture'=>$code_facture,"statut_livraison"=>2
+            'statut_prod' =>2,'code_facture'=>$code_facture,"statut_livraison"=>2
         ));
 
 
@@ -376,7 +376,7 @@ clients.nom,clients.prenoms,sum(versement.montant_verser) as verser,bon_commande
 
 
         DB::table('bon_commande')->where('code_commande','=',$request->code_commande)->update(array(
-            'statut_prod' =>1,'code_facture'=>$code_facture,"statut_livraison"=>2
+            'statut_prod' =>2,'code_facture'=>$code_facture,"statut_livraison"=>2
         ));
 
 

@@ -14,22 +14,37 @@ class ApiProduitsControllers extends Controller
         $date_jour = date("Y-m-d");
         $valeur = array();
         $valeur["element"] = array();
+        $produits = DB::table('catalogue_produits')
+            ->join('produits','catalogue_produits.code_produit','=','produits.code_produit')
+            ->groupBy('catalogue_produits.code_produit')
+            ->orderBy('catalogue_produits.created_at','asc')
+            ->limit(5)
+            ->get();
+        /*
         $produits = DB::table('produits')
             ->join('catalogue_produits','catalogue_produits.code_produit','=','produits.code_produit')
             ->where('catalogue_produits.created_at','=',$date_jour)
             ->select('*')->get();
+        */
         foreach($produits as $produit){
+
             $element = DB::table('bon_commande')
                 ->join('commandes','commandes.code_commande','=','bon_commande.code_commande')
-                ->select(DB::raw('SUM(commandes.quantite_acheter) as vendu'))
-                ->where('bon_commande.date_commande','=',$date_jour)
+                ->where('commandes.code_produit','=',$produit->code_produit)
                 ->where('bon_commande.statut_livraison','=',2)
-                ->where('commandes.code_produit','=',$produit->code_produit)->first();
+                ->sum('commandes.quantite_acheter');
+
+            $conso_prod = (int)$produit->quantite_produit;
+            $quantite_disponible = $conso_prod - ($element);
+
+            /*
             if ($element->vendu == null){
                 $quantite_disponible = (int)$produit->quantite_produit;
             }else{
                 $quantite_disponible = (int)$produit->quantite_produit - (int)$element->vendu;
             }
+            */
+
             $e = array(
                 "id_article" => $produit->id,
                 "code_produit" => $produit->code_produit,

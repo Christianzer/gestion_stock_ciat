@@ -680,7 +680,7 @@ class CaisseControllers extends Controller
 
         DB::table('bon_commande')
             ->where("bon_commande.code_facture",'=',$request->code_facture)
-            ->update(array("statut_prod"=>2));
+            ->update(array("encaisser"=>2));
 
         DB::table("information_paiement")->insert($dataPaiement);
 

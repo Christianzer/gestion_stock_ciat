@@ -185,7 +185,7 @@ class ApiClientsControllers extends Controller
 
         if (!$verifiez_bd_jour){
             if(!$verifiez_avant){
-               $this->db_save();
+                $this->db_save();
             }else{
                 if($maj_recent){
                     $this->db_save();
@@ -219,6 +219,7 @@ class ApiClientsControllers extends Controller
 
         $chiffres_affaires_jour = DB::table('catalogue_produits')
             ->join('produits','catalogue_produits.code_produit','=','produits.code_produit')
+            ->groupBy('catalogue_produits.code_produit')
             ->orderBy('catalogue_produits.created_at','asc')
             ->limit(5)
             ->get();
@@ -229,7 +230,7 @@ class ApiClientsControllers extends Controller
                 ->join('commandes','commandes.code_commande','=','bon_commande.code_commande')
                 ->where('commandes.code_produit','=',$prod->code_produit)
                 ->where('bon_commande.statut_livraison','=',2)
-                ->where('bon_commande.date_commande','<=',$date_jour)->sum('commandes.quantite_acheter');
+                ->sum('commandes.quantite_acheter');
 
             $conso_prod = (int)$prod->quantite_produit;
 
@@ -245,6 +246,7 @@ class ApiClientsControllers extends Controller
 
         }
 
+        /*
         $chiffres_affaire = DB::table('produits')
             ->join('catalogue_produits','catalogue_produits.code_produit','=','produits.code_produit')
             ->selectRaw('produits.code_produit,produits.libelle_produit,catalogue_produits.quantite_produit,
@@ -252,6 +254,7 @@ class ApiClientsControllers extends Controller
             ,sum(ventes.total_payer) as payer')
             ->leftJoin('ventes','produits.code_produit','=','ventes.code_produit')
             ->groupByRaw('produits.code_produit,produits.libelle_produit,catalogue_produits.quantite_produit,catalogue_produits.prix_produit')->get();
+        */
 
         $ventes_realiser_ttc = DB::table('versement')->select(DB::raw('sum(montant_verser) as montant_total'))->first();
         $ventes_realiser = DB::table('versement')->select(DB::raw('sum(montant_verser)/1.18 as montant_total'))->first();
@@ -261,16 +264,20 @@ class ApiClientsControllers extends Controller
         $ventes_a_realiser_ttc = 0;
 
         $produits_jour = DB::table('catalogue_produits')
-            ->where('created_at','=',$date_jour)->get();
+            ->join('produits','catalogue_produits.code_produit','=','produits.code_produit')
+            ->groupBy('catalogue_produits.code_produit')
+            ->orderBy('catalogue_produits.created_at','asc')
+            ->limit(5)
+            ->get();
 
         foreach ($produits_jour as $prod){
 
             $vendu_produits = DB::table('factures')
                 ->join('ventes','ventes.code_facture','=','factures.code_facture')
                 ->where('ventes.code_produit','=',$prod->code_produit)
-                ->where('factures.date_facture','<',$date_jour)->sum('ventes.quantite_acheter');
+                ->sum('ventes.quantite_acheter');
 
-            $conso_prod = (int)$prod->quantite_produit + (int)$vendu_produits;
+            $conso_prod = (int)$vendu_produits;
 
             $prix_prod_ht = $conso_prod * $prod->prix_produit;
             $prix_ttc = $conso_prod * $prod->prix_produit_ttc;
