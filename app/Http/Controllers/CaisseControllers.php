@@ -574,6 +574,43 @@ class CaisseControllers extends Controller
         return response()->json($listes,201);
     }
 
+
+    public function imprimerEntete($type,$id){
+        if ($type == 1){
+            $commandes = DB::table('bon_commande')
+                ->selectRaw('versement.code_facture,bon_commande.code_commande,
+clients.nom,clients.prenoms,bon_commande.id_bon_commande,
+bon_commande.date_commande,bon_commande.statut_livraison,clients.*,
+bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.montant_total,bon_commande.montant_total_ttc')
+                ->join('clients','clients.id','bon_commande.matricule_clients')
+                ->leftJoin('factures','factures.code_facture','=','bon_commande.code_facture')
+                ->leftJoin('versement','factures.code_facture','=','versement.code_facture')
+                ->groupByRaw('versement.code_facture,bon_commande.statut_livraison,bon_commande.date_commande,bon_commande.date_commande_update,bon_commande.code_commande,clients.nom,clients.prenoms,bon_commande.statut_prod,bon_commande.montant_total,bon_commande.montant_total_ttc')
+                ->where('bon_commande.encaisser','=',1)
+                ->where('clients.id','=',$id)
+                ->whereNull('bon_commande.code_facture')
+                ->orderByDesc('bon_commande.id_bon_commande')
+                ->get();
+        }else{
+            $commandes = DB::table('bon_commande')
+                ->selectRaw('versement.code_facture,bon_commande.code_commande,
+clients.nom,clients.prenoms,bon_commande.id_bon_commande,bon_commande.code_facture,
+bon_commande.date_commande,bon_commande.statut_livraison,clients.*,
+bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.montant_total,bon_commande.montant_total_ttc')
+                ->join('clients','clients.id','bon_commande.matricule_clients')
+                ->leftJoin('factures','factures.code_facture','=','bon_commande.code_facture')
+                ->leftJoin('versement','factures.code_facture','=','versement.code_facture')
+                ->groupByRaw('versement.code_facture,bon_commande.statut_livraison,bon_commande.date_commande,bon_commande.date_commande_update,bon_commande.code_commande,clients.nom,clients.prenoms,bon_commande.statut_prod,bon_commande.montant_total,bon_commande.montant_total_ttc')
+                ->where('bon_commande.encaisser','=',1)
+                ->where('clients.id','=',$id)
+                ->whereNotNull('bon_commande.code_facture')
+                ->orderByDesc('bon_commande.id_bon_commande')
+                ->get();
+        }
+
+        return view("point",compact('commandes','type'));
+    }
+
     public function listes(){
         /*
         $listes = DB::table('factures')

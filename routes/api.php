@@ -106,3 +106,6 @@ Route::post('entre/facture',[CaisseControllers::class,'entrer_caisse']);
 
 Route::get('listes_commandes_ventes/{id}', [ApiVentesControllers::class,'listes_commandes_clients']);
 Route::get('listes_commandes_livraisons/{id}', [ApiVentesControllers::class,'listes_commandes_livraions']);
+
+
+Route::get('imprimer_point_type/{type}/{id}',[CaisseControllers::class,'imprimerEntete']);

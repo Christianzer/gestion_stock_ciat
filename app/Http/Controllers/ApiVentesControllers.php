@@ -515,7 +515,7 @@ commandes.quantite_acheter,catalogue_produits.prix_produit,catalogue_produits.pr
     public function listes_commandes_clients($id){
         $commandes = DB::table('bon_commande')
             ->selectRaw('versement.code_facture,bon_commande.code_commande,
-clients.nom,clients.prenoms,bon_commande.id_bon_commande,
+clients.nom,clients.prenoms,bon_commande.id_bon_commande,bon_commande.code_facture,
 bon_commande.date_commande,bon_commande.statut_livraison,
 bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.montant_total,bon_commande.montant_total_ttc')
             ->join('clients','clients.id','bon_commande.matricule_clients')
@@ -534,7 +534,7 @@ bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.mo
 
     public function listes_commandes_livraions($id){
         $commandes = DB::table('bon_commande')
-            ->selectRaw('versement.code_facture,bon_commande.code_commande,
+            ->selectRaw('versement.code_facture,bon_commande.code_commande,bon_commande.code_facture,
 clients.nom,clients.prenoms,bon_commande.id_bon_commande,
 bon_commande.date_commande,bon_commande.statut_livraison,
 bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.montant_total,bon_commande.montant_total_ttc')
