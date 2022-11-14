@@ -27,6 +27,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 */
 
 Route::get('clients', [ApiClientsControllers::class,'getAllClients']);
+Route::get('clients_factures', [ApiClientsControllers::class,'getAllClientsFactures']);
 Route::post('clients', [ApiClientsControllers::class,'createClient']);
 Route::put('clients/{id}', [ApiClientsControllers::class,'updateClient']);
 Route::delete('clients/{id}', [ApiClientsControllers::class,'deleteClient']);
@@ -44,7 +45,7 @@ Route::post('commandes', [ApiVentesControllers::class,'commandes']);
 Route::get('commandes/{code_commande}', [ApiVentesControllers::class,'read_commande']);
 Route::get('imprimer_commandes/{code_commande}', [ApiVentesControllers::class,'imprimer_commande']);
 
-Route::get('listes_commandes', [ApiVentesControllers::class,'listes_commandes']);
+Route::get('listes_commandes/{id}', [ApiVentesControllers::class,'listes_commandes']);
 Route::get('listes_commandes_effectuer', [ApiVentesControllers::class,'listes_commandes_effectuer']);
 Route::get('remplir_facture/{code_commande}', [ApiVentesControllers::class,'remplir_facture']);
 
@@ -99,3 +100,9 @@ Route::get('listes_justif/{code}',[CaisseControllers::class,'listes_justif']);
 Route::get("code",[CaisseControllers::class,'generercodeentre']);
 Route::post('upload', [CaisseControllers::class,'upload']);
 Route::post('entre/facture',[CaisseControllers::class,'entrer_caisse']);
+
+
+
+
+Route::get('listes_commandes_ventes/{id}', [ApiVentesControllers::class,'listes_commandes_clients']);
+Route::get('listes_commandes_livraisons/{id}', [ApiVentesControllers::class,'listes_commandes_livraions']);

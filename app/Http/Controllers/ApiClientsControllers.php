@@ -18,6 +18,16 @@ class ApiClientsControllers extends Controller
         return response($clients,200);
     }
 
+    public function getAllClientsFactures() {
+        $clients = DB::table('bon_commande')
+            ->join('clients','clients.id','bon_commande.matricule_clients')
+            ->where('clients.statut','=',1)
+            ->groupBy('clients.id')
+            ->select('*')
+            ->get()->toJson();
+        return response($clients,200);
+    }
+
     public function createClient(Request $request) {
 
         $matricule = $request->input('matricule');
