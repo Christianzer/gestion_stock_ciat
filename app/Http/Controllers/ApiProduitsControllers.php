@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 class ApiProduitsControllers extends Controller
 {
     //
-    public function getProduits(){
+  public function getProduits(){
 
         $date_jour = date("Y-m-d");
         $valeur = array();

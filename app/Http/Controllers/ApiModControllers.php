@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ApiModControllers extends Controller
 {
-    //
-    public function delete_commande($code_commande){
+    
+      public function delete_commande($code_commande){
         $bon_commande = DB::table('bon_commande')
             ->where('code_commande','=',$code_commande)->first();
         DB::table('bon_commande')
@@ -27,4 +26,5 @@ class ApiModControllers extends Controller
         }
         return response()->json(null, 201);
     }
+    
 }

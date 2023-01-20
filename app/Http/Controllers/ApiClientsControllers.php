@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Ifsnop\Mysqldump as IMysqldump;
 
-
 class ApiClientsControllers extends Controller
 {
     public function getAllClients() {
@@ -17,7 +16,16 @@ class ApiClientsControllers extends Controller
             ->get()->toJson();
         return response($clients,200);
     }
-
+    
+      public function getClientsFacturesNew($matricule){
+        $information = DB::table('factures')
+            ->join('bon_commande','bon_commande.code_facture','=',"factures.code_facture")
+            ->where('factures.matricule_clients_factures','=',$matricule)
+            ->where('bon_commande.encaisser','=',2)
+            ->get();
+        return response()->json($information, 201);
+    }
+    
     public function getAllClientsFactures() {
         $clients = DB::table('bon_commande')
             ->join('clients','clients.id','bon_commande.matricule_clients')
@@ -115,7 +123,6 @@ class ApiClientsControllers extends Controller
     }
 
 
-
     public function deleteClient ($id) {
         $update = DB::table('clients')
             ->where('id','=',$id)->update(array(
@@ -195,7 +202,7 @@ class ApiClientsControllers extends Controller
 
         if (!$verifiez_bd_jour){
             if(!$verifiez_avant){
-                $this->db_save();
+               $this->db_save();
             }else{
                 if($maj_recent){
                     $this->db_save();
@@ -229,7 +236,7 @@ class ApiClientsControllers extends Controller
 
         $chiffres_affaires_jour = DB::table('catalogue_produits')
             ->join('produits','catalogue_produits.code_produit','=','produits.code_produit')
-            ->groupBy('catalogue_produits.code_produit')
+           ->groupBy('catalogue_produits.code_produit')
             ->orderBy('catalogue_produits.created_at','asc')
             ->limit(5)
             ->get();
@@ -240,7 +247,8 @@ class ApiClientsControllers extends Controller
                 ->join('commandes','commandes.code_commande','=','bon_commande.code_commande')
                 ->where('commandes.code_produit','=',$prod->code_produit)
                 ->where('bon_commande.statut_livraison','=',2)
-                ->sum('commandes.quantite_acheter');
+                 ->sum('commandes.quantite_acheter');
+
 
             $conso_prod = (int)$prod->quantite_produit;
 
@@ -256,7 +264,6 @@ class ApiClientsControllers extends Controller
 
         }
 
-        /*
         $chiffres_affaire = DB::table('produits')
             ->join('catalogue_produits','catalogue_produits.code_produit','=','produits.code_produit')
             ->selectRaw('produits.code_produit,produits.libelle_produit,catalogue_produits.quantite_produit,
@@ -264,7 +271,6 @@ class ApiClientsControllers extends Controller
             ,sum(ventes.total_payer) as payer')
             ->leftJoin('ventes','produits.code_produit','=','ventes.code_produit')
             ->groupByRaw('produits.code_produit,produits.libelle_produit,catalogue_produits.quantite_produit,catalogue_produits.prix_produit')->get();
-        */
 
         $ventes_realiser_ttc = DB::table('versement')->select(DB::raw('sum(montant_verser) as montant_total'))->first();
         $ventes_realiser = DB::table('versement')->select(DB::raw('sum(montant_verser)/1.18 as montant_total'))->first();
@@ -273,7 +279,7 @@ class ApiClientsControllers extends Controller
         $ventes_a_realiser = 0;
         $ventes_a_realiser_ttc = 0;
 
-        $produits_jour = DB::table('catalogue_produits')
+       $produits_jour = DB::table('catalogue_produits')
             ->join('produits','catalogue_produits.code_produit','=','produits.code_produit')
             ->groupBy('catalogue_produits.code_produit')
             ->orderBy('catalogue_produits.created_at','asc')
@@ -285,9 +291,9 @@ class ApiClientsControllers extends Controller
             $vendu_produits = DB::table('factures')
                 ->join('ventes','ventes.code_facture','=','factures.code_facture')
                 ->where('ventes.code_produit','=',$prod->code_produit)
-                ->sum('ventes.quantite_acheter');
+                ->where('factures.date_facture','<',$date_jour)->sum('ventes.quantite_acheter');
 
-            $conso_prod = (int)$vendu_produits;
+            $conso_prod = (int)$prod->quantite_produit + (int)$vendu_produits;
 
             $prix_prod_ht = $conso_prod * $prod->prix_produit;
             $prix_ttc = $conso_prod * $prod->prix_produit_ttc;
