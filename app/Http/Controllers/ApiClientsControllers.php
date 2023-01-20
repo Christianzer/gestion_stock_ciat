@@ -7,11 +7,22 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Ifsnop\Mysqldump as IMysqldump;
 
+
 class ApiClientsControllers extends Controller
 {
     public function getAllClients() {
         $clients = DB::table('clients')
             ->where('statut','=',1)
+            ->select('*')
+            ->get()->toJson();
+        return response($clients,200);
+    }
+
+    public function getAllClientsFactures() {
+        $clients = DB::table('bon_commande')
+            ->join('clients','clients.id','bon_commande.matricule_clients')
+            ->where('clients.statut','=',1)
+            ->groupBy('clients.id')
             ->select('*')
             ->get()->toJson();
         return response($clients,200);
@@ -104,6 +115,7 @@ class ApiClientsControllers extends Controller
     }
 
 
+
     public function deleteClient ($id) {
         $update = DB::table('clients')
             ->where('id','=',$id)->update(array(
@@ -137,13 +149,53 @@ class ApiClientsControllers extends Controller
     public function getData() {
 
 
+
+
+        //pour les versements sans date
+        /*
+        $versement = DB::table('versement')
+            ->where("code_versement",'=',null)
+            ->where("date_versement",'=',null)
+            ->get();
+        foreach ($versement as $value){
+            $date_facture = DB::table('factures')->where('code_facture','=',$value->code_facture)->first();
+            if (isset($date_facture)){
+                if (is_null($date_facture->date_facture_update)){
+                    $date_versement = $date_facture->date_facture;
+                }else{
+                    $date_versement = $date_facture->date_facture_update;
+                }
+                $code = "OBF-ET".date('Y')."N".$value->id_versement;
+                DB::table("versement")
+                    ->where('code_facture','=',$date_facture->code_facture)
+                    ->update(array(
+                        "date_versement"=>$date_versement,
+                        "code_versement"=>$code
+                    ));
+                $dataPaiement = array(
+                    "code_versement"=>$code,
+                    "paiement"=>json_encode(array(
+                        "type_paiement"=>"Espèce",
+                        "montant"=>$value->montant_verser,
+                        "banque"=>null,
+                        "numero_cheque"=>null,
+                        "numero_telephone"=>null,
+                        "reseau"=>null
+                    ))
+                );
+
+                DB::table("information_paiement")->insert($dataPaiement);
+            }
+        }
+*/
+
         $verifiez_bd_jour = $this->verifiez_bd_jour();
         $verifiez_avant = $this->verifiez_bd_avant();
         $maj_recent = $this->sauvegarde_bd();
 
         if (!$verifiez_bd_jour){
             if(!$verifiez_avant){
-               $this->db_save();
+                $this->db_save();
             }else{
                 if($maj_recent){
                     $this->db_save();
@@ -177,29 +229,34 @@ class ApiClientsControllers extends Controller
 
         $chiffres_affaires_jour = DB::table('catalogue_produits')
             ->join('produits','catalogue_produits.code_produit','=','produits.code_produit')
-            ->where('catalogue_produits.created_at','=',$date_jour)->get();
+            ->groupBy('catalogue_produits.code_produit')
+            ->orderBy('catalogue_produits.created_at','asc')
+            ->limit(5)
+            ->get();
 
         foreach ($chiffres_affaires_jour as $prod){
 
             $vendu_produits = DB::table('bon_commande')
                 ->join('commandes','commandes.code_commande','=','bon_commande.code_commande')
                 ->where('commandes.code_produit','=',$prod->code_produit)
-                ->where('bon_commande.date_commande','<',$date_jour)->sum('commandes.quantite_acheter');
+                ->where('bon_commande.statut_livraison','=',2)
+                ->sum('commandes.quantite_acheter');
 
-            $conso_prod = (int)$prod->quantite_produit + (int)$vendu_produits;
-            $quantite_vendu = DB::table('commandes')->where('code_produit','=',$prod->code_produit)->sum('quantite_acheter');
+            $conso_prod = (int)$prod->quantite_produit;
+
 
             $e = array(
                 'code_produit'=>$prod->code_produit,
                 'libelle_produit'=>$prod->libelle_produit,
                 'quantite_produit'=>$conso_prod,
-                'quantite_vendu'=>$quantite_vendu
+                'quantite_vendu'=>$vendu_produits
             );
 
             $valeur["element"][] = $e;
 
         }
 
+        /*
         $chiffres_affaire = DB::table('produits')
             ->join('catalogue_produits','catalogue_produits.code_produit','=','produits.code_produit')
             ->selectRaw('produits.code_produit,produits.libelle_produit,catalogue_produits.quantite_produit,
@@ -207,24 +264,30 @@ class ApiClientsControllers extends Controller
             ,sum(ventes.total_payer) as payer')
             ->leftJoin('ventes','produits.code_produit','=','ventes.code_produit')
             ->groupByRaw('produits.code_produit,produits.libelle_produit,catalogue_produits.quantite_produit,catalogue_produits.prix_produit')->get();
+        */
 
-        $ventes_realiser = DB::table('factures')->select(DB::raw('sum(montant_total_factures) as montant_total'))->first();
-        $ventes_realiser_ttc = DB::table('factures')->select(DB::raw('sum(montant_total_factures_ttc) as montant_total'))->first();
+        $ventes_realiser_ttc = DB::table('versement')->select(DB::raw('sum(montant_verser) as montant_total'))->first();
+        $ventes_realiser = DB::table('versement')->select(DB::raw('sum(montant_verser)/1.18 as montant_total'))->first();
+
 
         $ventes_a_realiser = 0;
         $ventes_a_realiser_ttc = 0;
 
         $produits_jour = DB::table('catalogue_produits')
-            ->where('created_at','=',$date_jour)->get();
+            ->join('produits','catalogue_produits.code_produit','=','produits.code_produit')
+            ->groupBy('catalogue_produits.code_produit')
+            ->orderBy('catalogue_produits.created_at','asc')
+            ->limit(5)
+            ->get();
 
         foreach ($produits_jour as $prod){
 
             $vendu_produits = DB::table('factures')
                 ->join('ventes','ventes.code_facture','=','factures.code_facture')
                 ->where('ventes.code_produit','=',$prod->code_produit)
-                ->where('factures.date_facture','<',$date_jour)->sum('ventes.quantite_acheter');
+                ->sum('ventes.quantite_acheter');
 
-            $conso_prod = (int)$prod->quantite_produit + (int)$vendu_produits;
+            $conso_prod = (int)$vendu_produits;
 
             $prix_prod_ht = $conso_prod * $prod->prix_produit;
             $prix_ttc = $conso_prod * $prod->prix_produit_ttc;
@@ -251,6 +314,9 @@ class ApiClientsControllers extends Controller
             ->limit(3)
             ->get();
 
+        $decaissement = DB::table('sortie_caisse')->sum('sortie_caisse.montant_sortie_caisse');
+        $appro = DB::table('entre_caisse')->sum('entre_caisse.montant_entre_caisse');
+
         return response()->json(array(
             'clients'=>$clients,
             'produits'=>$produits,
@@ -260,7 +326,9 @@ class ApiClientsControllers extends Controller
             'ventes_realiser_ttc'=>$ventes_realiser_ttc,
             'ventes_a_realiser_ttc' =>$ventes_a_realiser_ttc,
             'top_five_clients'=>$top_five_clients,
-            'top_fives_produits'=>$top_fives_produits
+            'top_fives_produits'=>$top_fives_produits,
+            'decaissement'=>$decaissement,
+            'appro'=>$appro
         ), 201);
 
     }

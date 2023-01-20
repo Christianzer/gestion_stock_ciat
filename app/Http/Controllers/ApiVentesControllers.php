@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 
-use Barryvdh\DomPDF\Facade as PDF;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 class ApiVentesControllers extends Controller
@@ -49,9 +49,70 @@ class ApiVentesControllers extends Controller
 
     }
 
+    public function facture_directe(Request $request){
+        $produits = $request->produits;
+        $code_commande = $this->genererCodeCommande();
+        $code_facture = $this->genererCodeFacture();
+
+        foreach ($produits as $prod){
+            if ((int)$prod['quantite_acheter'] > 0):
+
+                $prix = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_produit']);
+                $prix_vente_ttc = floor((float)$prod['prix_produit'] * 1.18);
+                $prix_ttc = (float)((int)$prod['quantite_acheter'] * $prix_vente_ttc);
+
+                DB::table('commandes')->insert(array(
+                    'code_produit'=>$prod['code_produit'],
+                    'quantite_acheter'=>$prod['quantite_acheter'],
+                    'code_commande'=>$code_commande,
+                    'prix_vente'=>(float)$prod['prix_produit'],
+                    'prix_ventes_ttc'=>$prix_vente_ttc,
+                    'total_payer'=>$prix,
+                    'total_payer_ttc'=>$prix_ttc
+                ));
+
+                DB::table('ventes')->insert(array(
+                    'code_produit'=>$prod['code_produit'],
+                    'quantite_acheter'=>$prod['quantite_acheter'],
+                    'prix_vente'=>(float)$prod['prix_produit'],
+                    'prix_ventes_ttc'=>$prix_vente_ttc,
+                    'code_facture'=>$code_facture,
+                    'total_payer'=>$prix,
+                    'total_payer_ttc'=>$prix_ttc
+                ));
+
+            endif;
+        }
+
+
+        DB::table('bon_commande')->insert(array(
+            'code_commande'=>$code_commande,
+            'montant_total'=>(float)$request->montant_total,
+            'montant_total_ttc'=>(float)$request->montant_total_ttc,
+            'matricule_clients'=>(int)$request->clients,
+            'statut_livraison'=>2,
+            'statut_prod' =>2,
+            'code_facture'=>$code_facture,
+            'date_commande'=>$request->date_commande,
+            'date_commande_update'=>$request->update_data
+        ));
+
+        DB::table('factures')->insert(array(
+            'code_facture'=>$code_facture,
+            'montant_total_factures'=>(float)$request->montant_total,
+            'montant_total_factures_ttc'=>(float)$request->montant_total_ttc,
+            'matricule_clients_factures'=>(int)$request->clients,
+            'date_facture'=>$request->date_commande,
+            'date_facture_update'=>$request->update_data
+        ));
+
+        return response()->json($code_facture, 201);
+    }
+
     public function commandes(Request $request){
         $produits = $request->produits;
         $code_commande = $this->genererCodeCommande();
+
         foreach ($produits as $prod){
             $prix = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_vente']);
             $prix_vente_ttc = floor((float)$prod['prix_vente'] * 1.18);
@@ -73,6 +134,7 @@ class ApiVentesControllers extends Controller
             'montant_total_ttc'=>(float)$request->montant_total_ttc,
             'matricule_clients'=>(int)$request->clients,
             'date_commande'=>$request->date_commande,
+            'statut_livraison'=>2,
             'date_commande_update'=>$request->update_data
         ));
 
@@ -144,27 +206,33 @@ class ApiVentesControllers extends Controller
 
     /**Commandes */
 
-    public function listes_commandes(){
+    public function listes_commandes($id){
         $commandes = DB::table('bon_commande')
             ->selectRaw('versement.code_facture,bon_commande.code_commande,
-clients.nom,clients.prenoms,
+clients.nom,clients.prenoms,bon_commande.id_bon_commande,
 bon_commande.date_commande,bon_commande.statut_livraison,
 bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.montant_total,bon_commande.montant_total_ttc')
             ->join('clients','clients.id','bon_commande.matricule_clients')
-            ->where('bon_commande.statut_prod','=',1)
             ->leftJoin('factures','factures.code_facture','=','bon_commande.code_facture')
             ->leftJoin('versement','factures.code_facture','=','versement.code_facture')
             ->groupByRaw('versement.code_facture,bon_commande.statut_livraison,bon_commande.date_commande,bon_commande.date_commande_update,bon_commande.code_commande,clients.nom,clients.prenoms,bon_commande.statut_prod,bon_commande.montant_total,bon_commande.montant_total_ttc')
+            ->where('bon_commande.encaisser','=',1)
+            ->where('clients.id','=',$id)
+            ->orderByDesc('bon_commande.id_bon_commande')
             ->get();
+
         return response($commandes,201);
     }
 
     public function listes_commandes_effectuer(){
         $commandes = DB::table('bon_commande')
-           ->selectRaw('distinctrow bon_commande.matricule_clients,
-clients.nom,clients.prenoms')
+            ->selectRaw('distinctrow bon_commande.matricule_clients,
+clients.nom,clients.prenoms,sum(versement.montant_verser) as verser,bon_commande.montant_total,bon_commande.montant_total_ttc')
             ->join('clients','bon_commande.matricule_clients','=','clients.id')
-            ->where('statut_prod','=',2)
+            ->leftJoin('factures','factures.code_facture','=','bon_commande.code_facture')
+            ->leftJoin('versement','factures.code_facture','=','versement.code_facture')
+            ->groupByRaw('versement.code_facture,bon_commande.statut_livraison,bon_commande.date_commande,bon_commande.date_commande_update,bon_commande.code_commande,clients.nom,clients.prenoms,bon_commande.statut_prod,bon_commande.montant_total,bon_commande.montant_total_ttc')
+            ->havingRaw('COALESCE(verser, 0 ) >= bon_commande.montant_total_ttc')
             ->get();
         return response($commandes,201);
     }
@@ -212,49 +280,106 @@ clients.nom,clients.prenoms')
     /* Ventes */
 
     public function ventes(Request $request){
-        $statut = (int) $request->statut_produit;
-        if($statut == 1){
-            $produits = $request->produits;
-            $code_facture = $this->genererCodeFacture();
-            foreach ($produits as $prod){
-                $prix = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_vente']);
-                $prix_vente_ttc = floor((float)$prod['prix_vente'] * 1.18);
-                $prix_ttc = (float)((int)$prod['quantite_acheter'] * $prix_vente_ttc);
-                DB::table('ventes')->insert(array(
-                    'code_produit'=>$prod['code_produit'],
-                    'quantite_acheter'=>$prod['quantite_acheter'],
-                    'prix_vente'=>(float)$prod['prix_vente'],
-                    'prix_ventes_ttc'=>$prix_vente_ttc,
-                    'code_facture'=>$code_facture,
-                    'total_payer'=>$prix,
-                    'total_payer_ttc'=>$prix_ttc
-                ));
-            }
-            DB::table('factures')->insert(array(
-                'code_facture'=>$code_facture,
-                'montant_total_factures'=>(float)$request->montant_total,
-                'montant_total_factures_ttc'=>(float)$request->montant_total_ttc,
-                'matricule_clients_factures'=>(int)$request->clients,
-                'date_facture'=>$request->date_facture,
-                'date_facture_update'=>$request->date_facture_update
-            ));
 
-            DB::table('versement')->insert(array(
-                'code_facture'=>$code_facture,
-                'montant_verser'=>(float)$request->somme_verse
-            ));
 
-            DB::table('bon_commande')->where('code_commande','=',$request->code_commande)->update(array(
-                'statut_prod' =>2,'code_facture'=>$code_facture
-            ));
+        $code_commande = $request->code_commande;
 
-        }else{
-            $code_facture = $request->code_facture;
-            DB::table('versement')->insert(array(
+        $existFacture = DB::table('bon_commande')->
+            where('bon_commande.code_commande','=',$code_commande)->first();
+
+        if (!is_null($existFacture->code_facture)){
+            DB::table('factures')->where('code_facture','=',$existFacture->code_facture)->delete();
+            DB::table('ventes')->where('code_facture','=',$existFacture->code_facture)->delete();
+        }
+
+        $produits = $request->produits;
+        $code_facture = $this->genererCodeFacture();
+
+
+
+
+        foreach ($produits as $prod){
+            $prix = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_vente']);
+            $prix_vente_ttc = floor((float)$prod['prix_vente'] * 1.18);
+            $prix_ttc = (float)((int)$prod['quantite_acheter'] * $prix_vente_ttc);
+            DB::table('ventes')->insert(array(
+                'code_produit'=>$prod['code_produit'],
+                'quantite_acheter'=>$prod['quantite_acheter'],
+                'prix_vente'=>(float)$prod['prix_vente'],
+                'prix_ventes_ttc'=>$prix_vente_ttc,
                 'code_facture'=>$code_facture,
-                'montant_verser'=>(float)$request->somme_verse
+                'total_payer'=>$prix,
+                'total_payer_ttc'=>$prix_ttc
             ));
         }
+
+        DB::table('factures')->insert(array(
+            'code_facture'=>$code_facture,
+            'montant_total_factures'=>(float)$request->montant_total,
+            'montant_total_factures_ttc'=>(float)$request->montant_total_ttc,
+            'matricule_clients_factures'=>(int)$request->clients,
+            'date_facture'=>$request->date_facture,
+            'date_facture_update'=>$request->date_facture_update
+        ));
+
+
+
+        DB::table('bon_commande')->where('code_commande','=',$request->code_commande)->update(array(
+            'statut_prod' =>2,'code_facture'=>$code_facture,"statut_livraison"=>2
+        ));
+
+
+        return response()->json($code_facture, 201);
+    }
+    public function ventesDirecte(Request $request){
+
+
+        $code_commande = $request->code_commande;
+
+        $existFacture = DB::table('bon_commande')->
+            where('bon_commande.code_commande','=',$code_commande)->first();
+
+        if (!is_null($existFacture->code_facture)){
+            DB::table('factures')->where('code_facture','=',$existFacture->code_facture)->delete();
+            DB::table('ventes')->where('code_facture','=',$existFacture->code_facture)->delete();
+        }
+
+        $produits = $request->produits;
+        $code_facture = $this->genererCodeFacture();
+
+
+
+
+        foreach ($produits as $prod){
+            $prix = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_vente']);
+            $prix_vente_ttc = floor((float)$prod['prix_vente'] * 1.18);
+            $prix_ttc = (float)((int)$prod['quantite_acheter'] * $prix_vente_ttc);
+            DB::table('ventes')->insert(array(
+                'code_produit'=>$prod['code_produit'],
+                'quantite_acheter'=>$prod['quantite_acheter'],
+                'prix_vente'=>(float)$prod['prix_vente'],
+                'prix_ventes_ttc'=>$prix_vente_ttc,
+                'code_facture'=>$code_facture,
+                'total_payer'=>$prix,
+                'total_payer_ttc'=>$prix_ttc
+            ));
+        }
+
+        DB::table('factures')->insert(array(
+            'code_facture'=>$code_facture,
+            'montant_total_factures'=>(float)$request->montant_total,
+            'montant_total_factures_ttc'=>(float)$request->montant_total_ttc,
+            'matricule_clients_factures'=>(int)$request->clients,
+            'date_facture'=>$request->date_facture,
+            'date_facture_update'=>$request->date_facture_update
+        ));
+
+
+
+        DB::table('bon_commande')->where('code_commande','=',$request->code_commande)->update(array(
+            'statut_prod' =>2,'code_facture'=>$code_facture,"statut_livraison"=>2
+        ));
+
 
         return response()->json($code_facture, 201);
     }
@@ -386,6 +511,45 @@ commandes.quantite_acheter,catalogue_produits.prix_produit,catalogue_produits.pr
 
     }
 
+
+    public function listes_commandes_clients($id){
+        $commandes = DB::table('bon_commande')
+            ->selectRaw('versement.code_facture,bon_commande.code_commande,
+clients.nom,clients.prenoms,bon_commande.id_bon_commande,bon_commande.code_facture,
+bon_commande.date_commande,bon_commande.statut_livraison,
+bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.montant_total,bon_commande.montant_total_ttc')
+            ->join('clients','clients.id','bon_commande.matricule_clients')
+            ->leftJoin('factures','factures.code_facture','=','bon_commande.code_facture')
+            ->leftJoin('versement','factures.code_facture','=','versement.code_facture')
+            ->groupByRaw('versement.code_facture,bon_commande.statut_livraison,bon_commande.date_commande,bon_commande.date_commande_update,bon_commande.code_commande,clients.nom,clients.prenoms,bon_commande.statut_prod,bon_commande.montant_total,bon_commande.montant_total_ttc')
+            ->where('bon_commande.encaisser','=',1)
+            ->where('clients.id','=',$id)
+            ->whereNotNull('bon_commande.code_facture')
+            ->orderByDesc('bon_commande.id_bon_commande')
+            ->get();
+
+        return response($commandes,201);
+    }
+
+
+    public function listes_commandes_livraions($id){
+        $commandes = DB::table('bon_commande')
+            ->selectRaw('versement.code_facture,bon_commande.code_commande,bon_commande.code_facture,
+clients.nom,clients.prenoms,bon_commande.id_bon_commande,
+bon_commande.date_commande,bon_commande.statut_livraison,
+bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.montant_total,bon_commande.montant_total_ttc')
+            ->join('clients','clients.id','bon_commande.matricule_clients')
+            ->leftJoin('factures','factures.code_facture','=','bon_commande.code_facture')
+            ->leftJoin('versement','factures.code_facture','=','versement.code_facture')
+            ->groupByRaw('versement.code_facture,bon_commande.statut_livraison,bon_commande.date_commande,bon_commande.date_commande_update,bon_commande.code_commande,clients.nom,clients.prenoms,bon_commande.statut_prod,bon_commande.montant_total,bon_commande.montant_total_ttc')
+            ->where('bon_commande.encaisser','=',1)
+            ->where('clients.id','=',$id)
+            ->whereNull('bon_commande.code_facture')
+            ->orderByDesc('bon_commande.id_bon_commande')
+            ->get();
+
+        return response($commandes,201);
+    }
 
 
 }
