@@ -116,3 +116,15 @@ Route::get('listes_justif/{code}',[CaisseControllers::class,'listes_justif']);
 Route::get("code",[CaisseControllers::class,'generercodeentre']);
 Route::post('upload', [CaisseControllers::class,'upload']);
 Route::post('entre/facture',[CaisseControllers::class,'entrer_caisse']);
+
+
+
+Route::get('commercial', [ApiClientsControllers::class,'getAllCommercial']);
+Route::get('rapport/commercial/{date}', [ApiClientsControllers::class,'commercial_date']);
+Route::get('citation/{code_produit}/{date}/{client}', [ApiClientsControllers::class,'chekProd']);
+
+Route::post('commercial', [ApiClientsControllers::class,'createCommercial']);
+Route::put('commercial/{id}', [ApiClientsControllers::class,'updateCommercial']);
+Route::delete('commercial/{id}', [ApiClientsControllers::class,'deleteCommercial']);
+
+Route::post('login', [ApiClientsControllers::class,'login_obf']);
