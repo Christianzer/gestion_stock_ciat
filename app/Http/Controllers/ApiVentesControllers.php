@@ -134,7 +134,7 @@ class ApiVentesControllers extends Controller
             'montant_total_ttc'=>(float)$request->montant_total_ttc,
             'matricule_clients'=>(int)$request->clients,
             'date_commande'=>$request->date_commande,
-            'statut_livraison'=>2,
+            'statut_livraison'=>1,
             'date_commande_update'=>$request->update_data
         ));
 
@@ -206,7 +206,7 @@ class ApiVentesControllers extends Controller
 
     /**Commandes */
 
-   
+
    public function listes_commandes($id){
         $commandes = DB::table('bon_commande')
             ->selectRaw('versement.code_facture,bon_commande.code_commande,
@@ -237,7 +237,7 @@ clients.nom,clients.prenoms,sum(versement.montant_verser) as verser,bon_commande
             ->get();
         return response($commandes,201);
     }
-    
+
     public function remplir_facture($code_commande){
 
         $data = DB::table('bon_commande')
@@ -435,8 +435,8 @@ clients.nom,clients.prenoms,sum(versement.montant_verser) as verser,bon_commande
         //return $pdf->output();
 
     }
-    
-    
+
+
     public function imprimer_factures_perso($code_facture){
         set_time_limit(300);
         $facture_data = DB::table('factures')
@@ -545,10 +545,10 @@ commandes.quantite_acheter,catalogue_produits.prix_produit,catalogue_produits.pr
 
 
     }
-    
-    
-    
-    
+
+
+
+
     public function listes_commandes_clients($id){
         $commandes = DB::table('bon_commande')
             ->selectRaw('versement.code_facture,bon_commande.code_commande,
