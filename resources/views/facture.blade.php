@@ -21,13 +21,13 @@ table, th, td {
         <div class="col-md-6"></div>
         <div class="col-md-6">
             <table class="table">
-              
+
                 <tr>
                     <th class="text-uppercase text-left" style="width:40%">DATE</th>
                     <th class="text-uppercase text-left">REFERENCE CLIENT</th>
                 </tr>
-               
-                
+
+
                 <tr>
                     <td class="text-uppercase text-left font-weight-bold">{{$date_jour}}</td>
                     <td class="text-uppercase text-left font-weight-bold">
@@ -44,14 +44,14 @@ table, th, td {
 
                     </td>
                 </tr>
-              
+
             </table>
         </div>
     </div>
     <div class="row">
         <div class="col-md-12">
             <table class="table">
-               
+
                 <tr>
                     <th class="text-uppercase font-weight-bold">désignation</th>
                     <th class="text-uppercase font-weight-bold">quantité</th>
@@ -66,7 +66,7 @@ table, th, td {
                         <td class="font-weight-bold text-right">{{number_format($produit->total_payer,'0','.',' ')}} FCFA</td>
                     </tr>
                 @endforeach
-              
+
                 <tr>
                     <td colspan="3" class="text-uppercase font-weight-bold text-right">Montant total ht</td>
                     <td  class="text-uppercase font-weight-bold text-right">{{number_format($valeur['factures']->montant_total_factures,'0','.',' ')}} FCFA</td>
@@ -79,7 +79,7 @@ table, th, td {
                     <td colspan="3" class="text-uppercase font-weight-bold text-right">Montant total TTC</td>
                     <td class="text-uppercase font-weight-bold text-right">{{number_format(floor($valeur['factures']->montant_total_factures_ttc),'0','.',' ')}} FCFA</td>
                 </tr>
-                
+
                 @php $i=1; @endphp
                 @foreach($versements_data as $versement)
                     <tr>
@@ -99,8 +99,8 @@ table, th, td {
                     <td class="text-uppercase font-weight-bold text-right">{{number_format(floor($valeur['factures']->montant_total_factures_ttc - $versement),'0','.',' ')}} FCFA</td>
                 </tr>
 
-                
-               
+
+
             </table>
         </div>
     </div>
