@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Ifsnop\Mysqldump as IMysqldump;
 
-
 class ApiClientsControllers extends Controller
 {
     public function getAllClients() {
@@ -16,6 +15,15 @@ class ApiClientsControllers extends Controller
             ->select('*')
             ->get()->toJson();
         return response($clients,200);
+    }
+
+      public function getClientsFacturesNew($matricule){
+        $information = DB::table('factures')
+            ->join('bon_commande','bon_commande.code_facture','=',"factures.code_facture")
+            ->where('factures.matricule_clients_factures','=',$matricule)
+            ->where('bon_commande.encaisser','=',2)
+            ->get();
+        return response()->json($information, 201);
     }
 
     public function getAllClientsFactures() {
@@ -95,6 +103,8 @@ class ApiClientsControllers extends Controller
 
     }
 
+
+
     public function db_save(){
         $date_jour = date("Y-m-d");
         $username = env('DB_USERNAME');
@@ -113,7 +123,6 @@ class ApiClientsControllers extends Controller
             echo 'mysqldump-php error: ' . $e->getMessage();
         }
     }
-
 
 
     public function deleteClient ($id) {
@@ -195,7 +204,7 @@ class ApiClientsControllers extends Controller
 
         if (!$verifiez_bd_jour){
             if(!$verifiez_avant){
-                $this->db_save();
+               $this->db_save();
             }else{
                 if($maj_recent){
                     $this->db_save();
@@ -229,7 +238,7 @@ class ApiClientsControllers extends Controller
 
         $chiffres_affaires_jour = DB::table('catalogue_produits')
             ->join('produits','catalogue_produits.code_produit','=','produits.code_produit')
-            ->groupBy('catalogue_produits.code_produit')
+           ->groupBy('catalogue_produits.code_produit')
             ->orderBy('catalogue_produits.created_at','asc')
             ->limit(5)
             ->get();
@@ -240,7 +249,8 @@ class ApiClientsControllers extends Controller
                 ->join('commandes','commandes.code_commande','=','bon_commande.code_commande')
                 ->where('commandes.code_produit','=',$prod->code_produit)
                 ->where('bon_commande.statut_livraison','=',2)
-                ->sum('commandes.quantite_acheter');
+                 ->sum('commandes.quantite_acheter');
+
 
             $conso_prod = (int)$prod->quantite_produit;
 
@@ -256,7 +266,6 @@ class ApiClientsControllers extends Controller
 
         }
 
-        /*
         $chiffres_affaire = DB::table('produits')
             ->join('catalogue_produits','catalogue_produits.code_produit','=','produits.code_produit')
             ->selectRaw('produits.code_produit,produits.libelle_produit,catalogue_produits.quantite_produit,
@@ -264,7 +273,6 @@ class ApiClientsControllers extends Controller
             ,sum(ventes.total_payer) as payer')
             ->leftJoin('ventes','produits.code_produit','=','ventes.code_produit')
             ->groupByRaw('produits.code_produit,produits.libelle_produit,catalogue_produits.quantite_produit,catalogue_produits.prix_produit')->get();
-        */
 
         $ventes_realiser_ttc = DB::table('versement')->select(DB::raw('sum(montant_verser) as montant_total'))->first();
         $ventes_realiser = DB::table('versement')->select(DB::raw('sum(montant_verser)/1.18 as montant_total'))->first();
@@ -273,7 +281,7 @@ class ApiClientsControllers extends Controller
         $ventes_a_realiser = 0;
         $ventes_a_realiser_ttc = 0;
 
-        $produits_jour = DB::table('catalogue_produits')
+       $produits_jour = DB::table('catalogue_produits')
             ->join('produits','catalogue_produits.code_produit','=','produits.code_produit')
             ->groupBy('catalogue_produits.code_produit')
             ->orderBy('catalogue_produits.created_at','asc')
@@ -285,9 +293,9 @@ class ApiClientsControllers extends Controller
             $vendu_produits = DB::table('factures')
                 ->join('ventes','ventes.code_facture','=','factures.code_facture')
                 ->where('ventes.code_produit','=',$prod->code_produit)
-                ->sum('ventes.quantite_acheter');
+                ->where('factures.date_facture','<',$date_jour)->sum('ventes.quantite_acheter');
 
-            $conso_prod = (int)$vendu_produits;
+            $conso_prod = (int)$prod->quantite_produit + (int)$vendu_produits;
 
             $prix_prod_ht = $conso_prod * $prod->prix_produit;
             $prix_ttc = $conso_prod * $prod->prix_produit_ttc;
@@ -411,6 +419,233 @@ class ApiClientsControllers extends Controller
         return $nbres_jours > 7;
 
     }
+
+
+
+    public function getAllCommercial() {
+        $clients = DB::table('commercial')
+            ->where('statut','=',1)
+            ->select('*')
+            ->get()->toJson();
+        return response($clients,200);
+    }
+
+    public function createCommercial(Request $request) {
+
+
+        $nom = $request->input('nom');
+        $prenoms = $request->input('prenoms');
+        $telephone = $request->input('telephone');
+        $contact = $request->input('contact');
+        $mail = $request->input('mail');
+        $login = $request->input('login');
+
+        if (!empty($request->input('mdp'))){
+            $mdp = md5($request->input('mdp'));
+        }else{
+            $mdp = md5('obf');
+        }
+
+        $data = array(
+            'nom'=>$nom,
+            'prenoms'=>$prenoms,
+            'telephone'=>$telephone,
+            'contact'=>$contact,
+            'login'=>$login,
+            'mdp'=>$mdp,
+            'mail'=>$mail
+        );
+
+        $clients = DB::table('commercial')->insert($data);
+
+        if ($clients){
+            return response()->json($clients, 201);
+        }
+
+        else{
+            return response()->json( null,400);
+
+        }
+
+    }
+
+
+    public function updateCommercial(Request $request,$id) {
+        $nom = $request->input('nom');
+        $prenoms = $request->input('prenoms');
+        $telephone = $request->input('telephone');
+        $contact = $request->input('contact');
+        $mail = $request->input('mail');
+        $login = $request->input('login');
+
+        $data = array(
+            'nom'=>$nom,
+            'prenoms'=>$prenoms,
+            'telephone'=>$telephone,
+            'contact'=>$contact,
+            'login'=>$login,
+            'mail'=>$mail
+        );
+
+
+        if (!empty($request->input('mdp'))){
+            $mdp = md5($request->input('mdp'));
+            $utilmdp = array('mdp'=>$mdp);
+            $data = array_merge($data, $utilmdp);
+        }
+
+
+
+
+
+
+        $clients = DB::table('commercial')->where('id','=',$id)
+            ->update($data);
+
+        if ($clients){
+            return response()->json($clients, 201);
+        }
+
+        else{
+            return response()->json( null,400);
+
+        }
+
+    }
+
+    public function getCommercialFacturesNew($matricule){
+        $information = DB::table('factures')
+            ->join('bon_commande','bon_commande.code_facture','=',"factures.code_facture")
+            ->where('bon_commande.com_id','=',$matricule)
+            ->where('bon_commande.encaisser','=',2)
+            ->get();
+        return response()->json($information, 201);
+    }
+
+    public function deleteCommercial ($id) {
+        $update = DB::table('commercial')
+            ->where('id','=',$id)->update(array(
+                'statut'=>2
+            ));
+        if ($update){
+            return response()->json($update, 201);
+        }
+        else{
+            return response()->json( null,400);
+
+        }
+    }
+
+    public function login_obf(Request $request){
+
+        $login = $request->input('login');
+        $password = $request->input('password');
+        $userData = DB::table('commercial')
+            ->where('login','=',$login)
+            ->where('mdp','=',md5($password))->first();
+
+        if ($userData) {
+            //$user = DB::table('users')->where(array('email' => $email, 'password' => $password))->first();
+            return response()->json($userData, 201);
+        }else{
+            return response()->json(null, 401);
+        }
+    }
+
+
+    public function commercial_date($date){
+        $produits = DB::table('commercial')
+            ->where('type_user','=',2)
+            ->get();
+
+        $listes_produits = DB::table('produits_commercial')
+            ->get();
+
+        $quantite_produit = array();
+
+
+        $commercial = array();
+
+        $client_com = array();
+
+
+        $total_total = array();
+
+        $quantite_total_total = 0;
+
+        $chiffre_total_total = 0;
+
+
+
+        foreach ($produits as $prod){
+
+            foreach ($listes_produits as $listes_produit){
+
+                $produit_apt = DB::table('commandes')
+                    ->join('bon_commande','bon_commande.code_commande','=','commandes.code_commande')
+                    ->where('bon_commande.matricule_clients','=',$prod->id_client)
+                    ->where('bon_commande.date_commande','=',$date)
+                    ->where('commandes.code_produit','=',$listes_produit->code_produit)
+                    ->sum('commandes.quantite_acheter');
+
+                array_push($quantite_produit,(int)$produit_apt);
+            }
+
+            $quantite_total = DB::table('commandes')
+                ->join('bon_commande','bon_commande.code_commande','=','commandes.code_commande')
+                ->where('bon_commande.matricule_clients','=',$prod->id_client)
+                ->where('bon_commande.date_commande','=',$date)
+                ->sum('commandes.quantite_acheter');
+
+            $chiffre_affaire = DB::table('commandes')
+                ->join('bon_commande','bon_commande.code_commande','=','commandes.code_commande')
+                ->where('bon_commande.matricule_clients','=',$prod->id_client)
+                ->where('bon_commande.date_commande','=',$date)
+                ->sum('commandes.total_payer_ttc');
+
+
+
+
+            $e = array(
+                "commercial"=>$prod->nom." ".$prod->prenoms,
+                "quantite"=>$quantite_produit,
+                "quantite_total"=>(int)$quantite_total,
+                "chiffre_affaire"=>(int)$chiffre_affaire,
+            );
+
+            $quantite_total_total = $quantite_total_total + (int)$quantite_total;
+            $chiffre_total_total = $chiffre_total_total + (int)$chiffre_affaire;
+
+            array_push($client_com,$prod->id_client);
+
+            array_push($commercial,$e);
+        }
+
+
+        foreach ($listes_produits as $listes_produit){
+
+            $produit_apt = DB::table('commandes')
+                ->join('bon_commande','bon_commande.code_commande','=','commandes.code_commande')
+                ->whereIn('bon_commande.matricule_clients',$client_com)
+                ->where('bon_commande.date_commande','=',$date)
+                ->where('commandes.code_produit','=',$listes_produit->code_produit)
+                ->sum('commandes.quantite_acheter');
+
+            array_push($total_total,(int)$produit_apt);
+        }
+
+
+
+
+
+
+
+
+
+        return response()->json(array($commercial,$listes_produits,$total_total,$quantite_total_total,$chiffre_total_total), 201);
+    }
+
+
 
 
 }

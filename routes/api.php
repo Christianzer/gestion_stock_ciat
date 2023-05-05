@@ -26,11 +26,21 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 */
 
+Route::get('imprimer_point_type/{type}/{id}',[CaisseControllers::class,'imprimerEntete']);
+
+Route::get("ancien/{id}",[CaisseControllers::class,'inforRecu']);
+//Route::get("ancien",[CaisseControllers::class,'inforRecu']);
+
 Route::get('clients', [ApiClientsControllers::class,'getAllClients']);
-Route::get('clients_factures', [ApiClientsControllers::class,'getAllClientsFactures']);
 Route::post('clients', [ApiClientsControllers::class,'createClient']);
 Route::put('clients/{id}', [ApiClientsControllers::class,'updateClient']);
 Route::delete('clients/{id}', [ApiClientsControllers::class,'deleteClient']);
+
+Route::get('clients_factures', [ApiClientsControllers::class,'getAllClientsFactures']);
+
+
+Route::get('listes_commandes/{id}', [ApiVentesControllers::class,'listes_commandes']);
+
 
 Route::get('produits',[ApiProduitsControllers::class,'getProduits']);
 Route::post('produits', [ApiProduitsControllers::class,'createProduits']);
@@ -40,12 +50,13 @@ Route::delete('produits/{code_prod}', [ApiProduitsControllers::class,'deleteProd
 Route::post('ventes', [ApiVentesControllers::class,'ventes']);
 Route::get('factures/{code_facture}', [ApiVentesControllers::class,'read_facture']);
 Route::get('imprimer_factures/{code_facture}', [ApiVentesControllers::class,'imprimer_facture']);
+Route::get('imprimer_factures_perso/{code_facture}', [ApiVentesControllers::class,'imprimer_factures_perso']);
 
 Route::post('commandes', [ApiVentesControllers::class,'commandes']);
 Route::get('commandes/{code_commande}', [ApiVentesControllers::class,'read_commande']);
 Route::get('imprimer_commandes/{code_commande}', [ApiVentesControllers::class,'imprimer_commande']);
 
-Route::get('listes_commandes/{id}', [ApiVentesControllers::class,'listes_commandes']);
+Route::get('listes_commandes', [ApiVentesControllers::class,'listes_commandes']);
 Route::get('listes_commandes_effectuer', [ApiVentesControllers::class,'listes_commandes_effectuer']);
 Route::get('remplir_facture/{code_commande}', [ApiVentesControllers::class,'remplir_facture']);
 
@@ -59,7 +70,9 @@ Route::get('new_rapport/{date_demande}', [ApiProduitsControllers::class,'getnewr
 Route::get('imprimer_rapport/{date_demande}', [ApiProduitsControllers::class,'imprimer_rapport']);
 
 Route::get('listes_commandes_data/{matricule}',[ApiClientsControllers::class,'getClientsCommande']);
+
 Route::get('listes_factures_data/{matricule}',[ApiClientsControllers::class,'getClientsFactures']);
+Route::get('listes_factures_data_perso/{matricule}',[ApiClientsControllers::class,'getClientsFacturesNew']);
 
 Route::delete('supprimer/{code_commande}',[ApiModControllers::class,'delete_commande']);
 
@@ -80,8 +93,6 @@ Route::get('information/{code}',[CaisseControllers::class,'information']);
 Route::get('imprimer_recu/{code}',[CaisseControllers::class,'imprimer_recu']);
 
 
-Route::get("ancien",[CaisseControllers::class,'inforRecu']);
-
 Route::get('listes_sortie',[CaisseControllers::class,'sortie_listes']);
 Route::get("code_sortie",[CaisseControllers::class,'generercodeentre_sortie']);
 Route::post('facture_sortie',[CaisseControllers::class,'sortirCaisse']);
@@ -89,7 +100,12 @@ Route::post('upload_sortie', [CaisseControllers::class,'upload_sortie']);
 Route::get('dowload_sortie/{id}',[CaisseControllers::class,'dowload_sortie']);
 Route::get('listes_justif_sortie/{code}',[CaisseControllers::class,'listes_justif_sortie']);
 Route::post('recherche',[CaisseControllers::class,'recherche']);
-Route::get('imprimer/point/{date1}/{date2}/{type}/{detail_rapport}/{facture}/{client}/{type_paiement}',[CaisseControllers::class,'imprimerPoint']);
+Route::get('imprimer/point/{date1}/{date2}/{type}/{detail_rapport}/{facture}/{client}',[CaisseControllers::class,'imprimerPoint']);
+
+
+Route::get('listes_commandes_ventes/{id}', [ApiVentesControllers::class,'listes_commandes_clients']);
+Route::get('listes_commandes_livraisons/{id}', [ApiVentesControllers::class,'listes_commandes_livraions']);
+
 
 
 
@@ -103,9 +119,12 @@ Route::post('entre/facture',[CaisseControllers::class,'entrer_caisse']);
 
 
 
+Route::get('commercial', [ApiClientsControllers::class,'getAllCommercial']);
+Route::get('rapport/commercial/{date}', [ApiClientsControllers::class,'commercial_date']);
+Route::get('citation/{code_produit}/{date}/{client}', [ApiClientsControllers::class,'chekProd']);
 
-Route::get('listes_commandes_ventes/{id}', [ApiVentesControllers::class,'listes_commandes_clients']);
-Route::get('listes_commandes_livraisons/{id}', [ApiVentesControllers::class,'listes_commandes_livraions']);
+Route::post('commercial', [ApiClientsControllers::class,'createCommercial']);
+Route::put('commercial/{id}', [ApiClientsControllers::class,'updateCommercial']);
+Route::delete('commercial/{id}', [ApiClientsControllers::class,'deleteCommercial']);
 
-
-Route::get('imprimer_point_type/{type}/{id}',[CaisseControllers::class,'imprimerEntete']);
+Route::post('login', [ApiClientsControllers::class,'login_obf']);

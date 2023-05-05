@@ -181,6 +181,27 @@ class MobileApiControllers extends Controller
 
     public function getProduitsMobiles(){
 
+        $produits = DB::table('produits_commercial')
+            ->select('*')->get();
+
+
+        foreach($produits as $produit){
+            $e = array(
+                "id_article" => $produit->id,
+                "code_produit" => $produit->code_produit,
+                "libelle_produit" => $produit->libelle_produit,
+                "prix_produit" => $produit->prix_produit,
+                "quantite_acheter"=>0
+            );
+
+            $valeur["element"][] = $e;
+        }
+
+        return response()->json($valeur, 201);
+    }
+    /*
+    public function getProduitsMobiles(){
+
         $date_jour = date("Y-m-d");
         $valeur = array();
         $valeur["element"] = array();
@@ -215,7 +236,7 @@ class MobileApiControllers extends Controller
 
         return response()->json($valeur, 201);
     }
-
+    */
     public function genererCodeCommande(){
         $caracteres = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $longueurMax = strlen($caracteres);
@@ -246,31 +267,34 @@ class MobileApiControllers extends Controller
         $produits = $request->produits;
         $code_commande = $this->genererCodeCommande();
         $code_facture = $this->genererCodeFacture();
+        $montant_total_ttc = (float)$request->montant_total;
+        $montant_total_ht = floor($montant_total_ttc / 1.18);
 
         foreach ($produits as $prod){
             if ((int)$prod['quantite_acheter'] > 0):
 
-                $prix = (float)((int)$prod['quantite_acheter'] * (float)$prod['prix_produit']);
-                $prix_vente_ttc = floor((float)$prod['prix_produit'] * 1.18);
-                $prix_ttc = (float)((int)$prod['quantite_acheter'] * $prix_vente_ttc);
+                $prix_vente_ht = floor((float)$prod['prix_produit']/1.18);
+                $prix_vente_ttc = floor((float)$prod['prix_produit']);
+                $prix_ht = (float)(((int)$prod['quantite_acheter']) * ((float)$prix_vente_ht));
+                $prix_ttc = (float)(((int)$prod['quantite_acheter']) * $prix_vente_ttc);
 
                 DB::table('commandes')->insert(array(
                     'code_produit'=>$prod['code_produit'],
                     'quantite_acheter'=>$prod['quantite_acheter'],
                     'code_commande'=>$code_commande,
-                    'prix_vente'=>(float)$prod['prix_produit'],
+                    'prix_vente'=>(float)$prix_vente_ht,
                     'prix_ventes_ttc'=>$prix_vente_ttc,
-                    'total_payer'=>$prix,
+                    'total_payer'=>$prix_ht,
                     'total_payer_ttc'=>$prix_ttc
                 ));
 
                 DB::table('ventes')->insert(array(
                     'code_produit'=>$prod['code_produit'],
                     'quantite_acheter'=>$prod['quantite_acheter'],
-                    'prix_vente'=>(float)$prod['prix_produit'],
+                    'prix_vente'=>(float)$prix_vente_ht,
                     'prix_ventes_ttc'=>$prix_vente_ttc,
                     'code_facture'=>$code_facture,
-                    'total_payer'=>$prix,
+                    'total_payer'=>$prix_ht,
                     'total_payer_ttc'=>$prix_ttc
                 ));
 
@@ -280,8 +304,8 @@ class MobileApiControllers extends Controller
 
         DB::table('bon_commande')->insert(array(
             'code_commande'=>$code_commande,
-            'montant_total'=>(float)$request->montant_total,
-            'montant_total_ttc'=>(float)$request->montant_total_ttc,
+            'montant_total'=>$montant_total_ht,
+            'montant_total_ttc'=>$montant_total_ttc,
             'matricule_clients'=>(int)$request->clients,
             'statut_livraison'=>2,
             'statut_prod' =>2,
@@ -292,16 +316,11 @@ class MobileApiControllers extends Controller
 
         DB::table('factures')->insert(array(
             'code_facture'=>$code_facture,
-            'montant_total_factures'=>(float)$request->montant_total,
-            'montant_total_factures_ttc'=>(float)$request->montant_total_ttc,
+            'montant_total_factures'=>$montant_total_ht,
+            'montant_total_factures_ttc'=>$montant_total_ttc,
             'matricule_clients_factures'=>(int)$request->clients,
             'date_facture'=>date('Y-m-d'),
             'date_facture_update'=>date('Y-m-d')
-        ));
-
-        DB::table('versement')->insert(array(
-            'code_facture'=>$code_facture,
-            'montant_verser'=>(float)$request->somme_verse
         ));
 
         return response()->json($code_facture, 201);

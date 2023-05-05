@@ -567,8 +567,10 @@ class CaisseControllers extends Controller
     }
 
 
-    public function inforRecu(){
-        $listes =  DB::table("versement")
+       public function inforRecu($id){
+        $listes =  DB::table("bon_commande")
+            ->join("versement","versement.code_facture","=","bon_commande.code_facture")
+            ->where("bon_commande.matricule_clients","=",$id)
             ->orderByDesc('id_versement')
             ->get();
         return response()->json($listes,201);

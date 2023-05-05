@@ -137,7 +137,7 @@
                 </table>
             </td>
         </tr>
-        <tr style="height: 50px"></tr>
+        <tr style="height: 100px"></tr>
         <tr class="heading">
             <td colspan="4" class="text-uppercase text-danger font-weight-bold">Information Client</td>
         </tr>
@@ -151,32 +151,17 @@
 
             <td>LIBELLE PRODUIT</td>
             <td class="text-uppercase">Quantité</td>
-            <td>PRIX UNITAIRE HT</td>
-            <td>TOTAL HT</td>
+           
         </tr>
         @foreach($valeur['element'] as $produit)
             <tr class="item">
 
-                <td style="font-size: 16px" class="text-primary font-weight-bold">{{$produit->libelle_produit}}</td>
-                <td style="font-size: 16px" class="text-primary font-weight-bold">{{$produit->quantite_acheter}}</td>
-                <td style="font-size: 16px" class="text-primary font-weight-bold">{{number_format($produit->prix_vente,'0','.',' ')}} FCFA</td>
-
-                <td style="font-size: 16px" class="text-primary font-weight-bold">{{number_format($produit->total_payer,'0','.',' ')}} FCFA</td>
+                <td style="font-size: 18px" class="text-primary font-weight-bold">{{$produit->libelle_produit}}</td>
+                <td style="font-size: 18px" class="text-primary font-weight-bold">{{$produit->quantite_acheter}}</td>
+              
             </tr>
         @endforeach
-        <tr class="total">
-            <td colspan="3"></td>
-            <td style="font-size: 16px" class="text-success font-weight-bold text-uppercase">Total HT: {{number_format($valeur['factures']->montant_total,'0','.',' ')}} FCFA</td>
-        </tr>
-        <tr class="total">
-            <td colspan="3"></td>
-            <td style="font-size: 16px" class="text-success font-weight-bold text-uppercase">TVA 18% : {{number_format(floor(($valeur['factures']->montant_total*18)/100),'0','.',' ')}} FCFA</td>
-        </tr>
-
-        <tr class="total">
-            <td colspan="3"></td>
-            <td style="font-size: 16px" class="text-success font-weight-bold text-uppercase">Total TTC: {{number_format(floor($valeur['factures']->montant_total_ttc),'0','.',' ')}} FCFA</td>
-        </tr>
+    
     </table>
 </div>
 <footer>

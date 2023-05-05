@@ -85,7 +85,7 @@ class ApiVentesControllers extends Controller
         }
 
 
-        DB::table('bon_commande')->insert(array(
+          DB::table('bon_commande')->insert(array(
             'code_commande'=>$code_commande,
             'montant_total'=>(float)$request->montant_total,
             'montant_total_ttc'=>(float)$request->montant_total_ttc,
@@ -134,7 +134,7 @@ class ApiVentesControllers extends Controller
             'montant_total_ttc'=>(float)$request->montant_total_ttc,
             'matricule_clients'=>(int)$request->clients,
             'date_commande'=>$request->date_commande,
-            'statut_livraison'=>2,
+            'statut_livraison'=>1,
             'date_commande_update'=>$request->update_data
         ));
 
@@ -206,10 +206,11 @@ class ApiVentesControllers extends Controller
 
     /**Commandes */
 
-    public function listes_commandes($id){
+
+   public function listes_commandes($id){
         $commandes = DB::table('bon_commande')
             ->selectRaw('versement.code_facture,bon_commande.code_commande,
-clients.nom,clients.prenoms,bon_commande.id_bon_commande,
+clients.nom,clients.prenoms,bon_commande.id_bon_commande,bon_commande.code_facture,
 bon_commande.date_commande,bon_commande.statut_livraison,
 bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.montant_total,bon_commande.montant_total_ttc')
             ->join('clients','clients.id','bon_commande.matricule_clients')
@@ -231,8 +232,8 @@ clients.nom,clients.prenoms,sum(versement.montant_verser) as verser,bon_commande
             ->join('clients','bon_commande.matricule_clients','=','clients.id')
             ->leftJoin('factures','factures.code_facture','=','bon_commande.code_facture')
             ->leftJoin('versement','factures.code_facture','=','versement.code_facture')
-            ->groupByRaw('versement.code_facture,bon_commande.statut_livraison,bon_commande.date_commande,bon_commande.date_commande_update,bon_commande.code_commande,clients.nom,clients.prenoms,bon_commande.statut_prod,bon_commande.montant_total,bon_commande.montant_total_ttc')
-            ->havingRaw('COALESCE(verser, 0 ) >= bon_commande.montant_total_ttc')
+            ->groupBy('versement.code_facture')
+            ->where('bon_commande.encaisser','=',2)
             ->get();
         return response($commandes,201);
     }
@@ -376,7 +377,7 @@ clients.nom,clients.prenoms,sum(versement.montant_verser) as verser,bon_commande
 
 
 
-        DB::table('bon_commande')->where('code_commande','=',$request->code_commande)->update(array(
+       DB::table('bon_commande')->where('code_commande','=',$request->code_commande)->update(array(
             'statut_prod' =>2,'code_facture'=>$code_facture,"statut_livraison"=>2
         ));
 
@@ -391,8 +392,9 @@ clients.nom,clients.prenoms,sum(versement.montant_verser) as verser,bon_commande
         $versement = DB::table('versement')
             ->where('code_facture','=',$code_facture)
             ->sum('montant_verser');
-        $versements_data = DB::table('versement')
+         $versements_data = DB::table('versement')
             ->where('code_facture','=',$code_facture)
+            ->orderBy("date_versement",'asc')
             ->get();
         $element_facture = DB::table('ventes')
             ->join('produits','produits.code_produit','ventes.code_produit')
@@ -418,6 +420,7 @@ clients.nom,clients.prenoms,sum(versement.montant_verser) as verser,bon_commande
             ->sum('montant_verser');
         $versements_data = DB::table('versement')
             ->where('code_facture','=',$code_facture)
+            ->orderBy("date_versement",'asc')
             ->get();
         $valeur = array('factures'=>$facture_data, 'element'=>$element_facture,'versement'=>$versement,'versements_data'=>$versements_data);
         if (!is_null($valeur['factures']->date_facture_update)){
@@ -426,7 +429,39 @@ clients.nom,clients.prenoms,sum(versement.montant_verser) as verser,bon_commande
             $date_prendre =   $valeur['factures']->date_facture;
         }
         $date_jour = $this->dateToFrench($date_prendre,'l j F Y');
-        return view("facture",compact(['valeur','date_jour']));
+        return view("facture",compact(['valeur','date_jour','versement','versements_data']));
+        //$pdf = PDF::loadView("facture",compact(['valeur','date_jour']))->setPaper('a4', 'portrait')->setWarnings(false);
+        //return $pdf->stream();
+        //return $pdf->output();
+
+    }
+
+
+    public function imprimer_factures_perso($code_facture){
+        set_time_limit(300);
+        $facture_data = DB::table('factures')
+            ->join('clients','clients.id','factures.matricule_clients_factures')
+            ->where('factures.code_facture','=',$code_facture)->first();
+        $element_facture = DB::table('ventes')
+            ->join('produits','produits.code_produit','ventes.code_produit')
+            ->join('catalogue_produits','catalogue_produits.code_produit','=','ventes.code_produit')
+            ->where('catalogue_produits.created_at','=',date('Y-m-d'))
+            ->where('ventes.code_facture','=',$code_facture)->get();
+        $versement = DB::table('versement')
+            ->where('code_facture','=',$code_facture)
+            ->sum('montant_verser');
+        $versements_data = DB::table('versement')
+            ->where('code_facture','=',$code_facture)
+            ->orderBy("date_versement",'asc')
+            ->get();
+        $valeur = array('factures'=>$facture_data, 'element'=>$element_facture,'versement'=>$versement,'versements_data'=>$versements_data);
+        if (!is_null($valeur['factures']->date_facture_update)){
+            $date_prendre =   $valeur['factures']->date_facture_update;
+        }else{
+            $date_prendre =   $valeur['factures']->date_facture;
+        }
+        $date_jour = $this->dateToFrench($date_prendre,'l j F Y');
+        return view("facture_perso",compact(['valeur','date_jour','versement','versements_data']));
         //$pdf = PDF::loadView("facture",compact(['valeur','date_jour']))->setPaper('a4', 'portrait')->setWarnings(false);
         //return $pdf->stream();
         //return $pdf->output();
@@ -512,6 +547,8 @@ commandes.quantite_acheter,catalogue_produits.prix_produit,catalogue_produits.pr
     }
 
 
+
+
     public function listes_commandes_clients($id){
         $commandes = DB::table('bon_commande')
             ->selectRaw('versement.code_facture,bon_commande.code_commande,
@@ -534,8 +571,8 @@ bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.mo
 
     public function listes_commandes_livraions($id){
         $commandes = DB::table('bon_commande')
-            ->selectRaw('versement.code_facture,bon_commande.code_commande,bon_commande.code_facture,
-clients.nom,clients.prenoms,bon_commande.id_bon_commande,
+            ->selectRaw('versement.code_facture,bon_commande.code_commande,
+clients.nom,clients.prenoms,bon_commande.id_bon_commande,bon_commande.code_facture,
 bon_commande.date_commande,bon_commande.statut_livraison,
 bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.montant_total,bon_commande.montant_total_ttc')
             ->join('clients','clients.id','bon_commande.matricule_clients')
@@ -550,6 +587,8 @@ bon_commande.statut_prod,sum(versement.montant_verser) as verser,bon_commande.mo
 
         return response($commandes,201);
     }
+
+
 
 
 }
