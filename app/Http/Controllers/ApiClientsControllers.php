@@ -285,7 +285,7 @@ class ApiClientsControllers extends Controller
             ->join('produits','catalogue_produits.code_produit','=','produits.code_produit')
             ->groupBy('catalogue_produits.code_produit')
             ->orderBy('catalogue_produits.created_at','asc')
-            ->limit(5)
+            ->limit(8)
             ->get();
 
         foreach ($produits_jour as $prod){
