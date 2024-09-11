@@ -17,6 +17,15 @@ class ApiClientsControllers extends Controller
         return response($clients,200);
     }
 
+    public function getAllClientsHT() {
+        $clients = DB::table('clients')
+            ->where('statut','=',1)
+            ->where('divers','=',2)
+            ->select('*')
+            ->get()->toJson();
+        return response($clients,200);
+    }
+
       public function getClientsFacturesNew($matricule){
         $information = DB::table('factures')
             ->join('bon_commande','bon_commande.code_facture','=',"factures.code_facture")
@@ -30,6 +39,18 @@ class ApiClientsControllers extends Controller
         $clients = DB::table('bon_commande')
             ->join('clients','clients.id','bon_commande.matricule_clients')
             ->where('clients.statut','=',1)
+            ->where('bon_commande.taxe','=',1)
+            ->groupBy('clients.id')
+            ->select('*')
+            ->get()->toJson();
+        return response($clients,200);
+    }
+
+    public function getAllClientsFacturesHT() {
+        $clients = DB::table('bon_commande')
+            ->join('clients','clients.id','bon_commande.matricule_clients')
+            ->where('clients.statut','=',1)
+            ->where('bon_commande.taxe','=',2)
             ->groupBy('clients.id')
             ->select('*')
             ->get()->toJson();
@@ -53,7 +74,42 @@ class ApiClientsControllers extends Controller
             'telephone'=>$telephone,
             'contact'=>$contact,
             'compte_contr'=>$compte_contr,
-            'mail'=>$mail
+            'mail'=>$mail,
+            'divers'=>1
+        );
+
+        $clients = DB::table('clients')->insert($data);
+
+        if ($clients){
+            return response()->json($clients, 201);
+        }
+
+        else{
+            return response()->json( null,400);
+
+        }
+
+    }
+
+    public function createClientDiverses(Request $request) {
+
+        $matricule = $request->input('matricule');
+        $nom = $request->input('nom');
+        $prenoms = $request->input('prenoms');
+        $telephone = $request->input('telephone');
+        $contact = $request->input('contact');
+        $compte_contr = $request->input('compte_contr');
+        $mail = $request->input('mail');
+
+        $data = array(
+            'matricule'=>$matricule,
+            'nom'=>$nom,
+            'prenoms'=>$prenoms,
+            'telephone'=>$telephone,
+            'contact'=>$contact,
+            'compte_contr'=>$compte_contr,
+            'mail'=>$mail,
+            'divers'=>2
         );
 
         $clients = DB::table('clients')->insert($data);

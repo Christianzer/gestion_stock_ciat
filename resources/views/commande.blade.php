@@ -168,15 +168,18 @@
             <td colspan="3"></td>
             <td style="font-size: 16px" class="text-success font-weight-bold text-uppercase">Total HT: {{number_format($valeur['factures']->montant_total,'0','.',' ')}} FCFA</td>
         </tr>
-        <tr class="total">
-            <td colspan="3"></td>
-            <td style="font-size: 16px" class="text-success font-weight-bold text-uppercase">TVA 18% : {{number_format(floor(($valeur['factures']->montant_total*18)/100),'0','.',' ')}} FCFA</td>
-        </tr>
+        @if($valeur['factures']->taxe == 1)
+            <tr class="total">
+                <td colspan="3"></td>
+                <td style="font-size: 16px" class="text-success font-weight-bold text-uppercase">TVA 18% : {{number_format(floor(($valeur['factures']->montant_total*18)/100),'0','.',' ')}} FCFA</td>
+            </tr>
 
-        <tr class="total">
-            <td colspan="3"></td>
-               <td style="font-size: 16px" class="text-success font-weight-bold text-uppercase">Total TTC: {{number_format(floor($valeur['factures']->montant_total_ttc),'0','.',' ')}} FCFA</td>
-        </tr>
+
+            <tr class="total">
+                <td colspan="3"></td>
+                <td style="font-size: 16px" class="text-success font-weight-bold text-uppercase">Total TTC: {{number_format(floor($valeur['factures']->montant_total_ttc),'0','.',' ')}} FCFA</td>
+            </tr>
+        @endif
     </table>
 </div>
 <footer>

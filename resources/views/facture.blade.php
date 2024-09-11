@@ -9,10 +9,10 @@
         .center_page {
             padding: 350px 0;
         }
-table, th, td {
-  border: 3px solid black;
-  border-radius: 10px;
-}
+        table, th, td {
+            border: 3px solid black;
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body>
@@ -58,7 +58,7 @@ table, th, td {
                     <th class="text-uppercase font-weight-bold">prix unitaire ht</th>
                     <th class="text-uppercase font-weight-bold">total ht</th>
                 </tr>
-                  @foreach($valeur['element'] as $produit)
+                @foreach($valeur['element'] as $produit)
                     <tr>
                         <td class="font-weight-bold text-uppercase">{{$produit->libelle_produit}}</td>
                         <td class="font-weight-bold text-right">{{$produit->quantite_acheter}}</td>
@@ -71,14 +71,16 @@ table, th, td {
                     <td colspan="3" class="text-uppercase font-weight-bold text-right">Montant total ht</td>
                     <td  class="text-uppercase font-weight-bold text-right">{{number_format($valeur['factures']->montant_total_factures,'0','.',' ')}} FCFA</td>
                 </tr>
-                <tr>
-                    <td colspan="3" class="text-uppercase font-weight-bold text-right">TVA 18%</td>
-                    <td class="text-uppercase font-weight-bold text-right">{{number_format(floor(($valeur['factures']->montant_total_factures*18)/100),'0','.',' ')}} FCFA</td>
-                </tr>
-                <tr>
-                    <td colspan="3" class="text-uppercase font-weight-bold text-right">Montant total TTC</td>
-                    <td class="text-uppercase font-weight-bold text-right">{{number_format(floor($valeur['factures']->montant_total_factures_ttc),'0','.',' ')}} FCFA</td>
-                </tr>
+                @if($valeur['factures']->taxe == 1)
+                    <tr>
+                        <td colspan="3" class="text-uppercase font-weight-bold text-right">TVA 18%</td>
+                        <td class="text-uppercase font-weight-bold text-right">{{number_format(floor(($valeur['factures']->montant_total_factures*18)/100),'0','.',' ')}} FCFA</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="text-uppercase font-weight-bold text-right">Montant total TTC</td>
+                        <td class="text-uppercase font-weight-bold text-right">{{number_format(floor($valeur['factures']->montant_total_factures_ttc),'0','.',' ')}} FCFA</td>
+                    </tr>
+                @endif
 
                 @php $i=1; @endphp
                 @foreach($versements_data as $versement)

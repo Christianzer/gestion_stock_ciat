@@ -32,7 +32,12 @@ Route::get("ancien/{id}",[CaisseControllers::class,'inforRecu']);
 //Route::get("ancien",[CaisseControllers::class,'inforRecu']);
 
 Route::get('clients', [ApiClientsControllers::class,'getAllClients']);
+Route::get('clients_ht', [ApiClientsControllers::class,'getAllClientsHT']);
+
 Route::post('clients', [ApiClientsControllers::class,'createClient']);
+Route::post('clientsdivers', [ApiClientsControllers::class,'createClientDiverses']);
+
+
 Route::put('clients/{id}', [ApiClientsControllers::class,'updateClient']);
 Route::delete('clients/{id}', [ApiClientsControllers::class,'deleteClient']);
 
@@ -56,7 +61,7 @@ Route::post('commandes', [ApiVentesControllers::class,'commandes']);
 Route::get('commandes/{code_commande}', [ApiVentesControllers::class,'read_commande']);
 Route::get('imprimer_commandes/{code_commande}', [ApiVentesControllers::class,'imprimer_commande']);
 
-Route::get('listes_commandes', [ApiVentesControllers::class,'listes_commandes']);
+//Route::get('listes_commandes', [ApiVentesControllers::class,'listes_commandes']);
 Route::get('listes_commandes_effectuer', [ApiVentesControllers::class,'listes_commandes_effectuer']);
 Route::get('remplir_facture/{code_commande}', [ApiVentesControllers::class,'remplir_facture']);
 
@@ -128,3 +133,13 @@ Route::put('commercial/{id}', [ApiClientsControllers::class,'updateCommercial'])
 Route::delete('commercial/{id}', [ApiClientsControllers::class,'deleteCommercial']);
 
 Route::post('login', [ApiClientsControllers::class,'login_obf']);
+
+
+
+
+
+Route::get('listes_commandes_livraisons_ht/{id}', [ApiVentesControllers::class,'listes_commandes_livraions_ht']);
+Route::get('listes_commandes_ventes_ht/{id}', [ApiVentesControllers::class,'listes_commandes_clients_ht']);
+
+Route::get('clients_factures_ht', [ApiClientsControllers::class,'getAllClientsFacturesHT']);
+Route::get('listes_commandes_ht/{id}', [ApiVentesControllers::class,'listes_commandes_ht']);
